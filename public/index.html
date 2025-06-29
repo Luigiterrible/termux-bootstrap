@@ -4,212 +4,319 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CRM Lead Manager</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
   <style>
+    body.bg-dark {
+      background-color: #121212 !important;
+      color: #eee !important;
+    }
     .status-badge {
       padding: 4px 8px;
       border-radius: 5px;
       font-size: 0.8rem;
       color: white;
-      display: inline-block;
-      min-width: 70px;
-      text-align: center;
+      user-select: none;
     }
-    .status-NEW { background-color: #0d6efd; }
-    .status-CONTACTED { background-color: #ffc107; color: black; }
-    .status-VERIFIED { background-color: #198754; }
-    .status-SUBMITTED { background-color: #fd7e14; }
-    .status-CLOSED { background-color: #6c757d; }
+    .status-NEW {
+      background-color: #0d6efd;
+    }
+    .status-CONTACTED {
+      background-color: #ffc107;
+      color: black;
+    }
+    .status-VERIFIED {
+      background-color: #198754;
+    }
+    .status-SUBMITTED {
+      background-color: #fd7e14;
+    }
+    .status-CLOSED {
+      background-color: #6c757d;
+    }
     th.sortable:hover {
       cursor: pointer;
       text-decoration: underline;
     }
-    td[contenteditable="true"] {
-      background-color: #f8f9fa;
+    .sort-arrow {
+      margin-left: 5px;
+      font-size: 0.8rem;
+    }
+    /* Dropdown submenu styling */
+    .dropdown-submenu {
+      padding-left: 1rem;
+      border-left: 2px solid #ddd;
+      margin-bottom: 0.5rem;
+    }
+    .dropdown-submenu h6.dropdown-header {
+      cursor: pointer;
+      user-select: none;
     }
   </style>
 </head>
 <body class="bg-light p-4">
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div
+      class="d-flex justify-content-between align-items-center mb-4"
+      style="position: relative;"
+    >
       <h1 class="mb-0">CRM Lead Manager</h1>
-      <button class="btn btn-outline-secondary" onclick="toggleDarkMode()">🌓 Theme</button>
+      <div class="dropdown">
+        <button
+          class="btn btn-outline-secondary dropdown-toggle"
+          type="button"
+          id="settingsDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          ⚙️ Settings
+        </button>
+        <ul
+          class="dropdown-menu dropdown-menu-end"
+          aria-labelledby="settingsDropdown"
+          style="min-width: 240px;"
+        >
+          <li>
+            <h6
+              class="dropdown-header"
+              id="displayHeader"
+              style="font-weight: bold; cursor: pointer;"
+            >
+              ▶ Display
+            </h6>
+            <div
+              id="displaySubmenu"
+              style="display: none; padding-left: 15px; margin-top: 5px;"
+            >
+              <div class="dropdown-submenu">
+                <h6 class="dropdown-header">Choose Columns to Display</h6>
+                <div class="form-check">
+                  <input
+                    class="form-check-input column-toggle"
+                    type="checkbox"
+                    value="0"
+                    id="colFirstName"
+                    checked
+                  />
+                  <label class="form-check-label" for="colFirstName"
+                    >First Name</label
+                  >
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input column-toggle"
+                    type="checkbox"
+                    value="1"
+                    id="colLastName"
+                    checked
+                  />
+                  <label class="form-check-label" for="colLastName">Last Name</label>
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input column-toggle"
+                    type="checkbox"
+                    value="2"
+                    id="colPhone"
+                    checked
+                  />
+                  <label class="form-check-label" for="colPhone">Phone</label>
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input column-toggle"
+                    type="checkbox"
+                    value="3"
+                    id="colEmail"
+                    checked
+                  />
+                  <label class="form-check-label" for="colEmail">Email</label>
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input column-toggle"
+                    type="checkbox"
+                    value="4"
+                    id="colTort"
+                    checked
+                  />
+                  <label class="form-check-label" for="colTort">Tort</label>
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input column-toggle"
+                    type="checkbox"
+                    value="5"
+                    id="colStatus"
+                    checked
+                  />
+                  <label class="form-check-label" for="colStatus">Status</label>
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input column-toggle"
+                    type="checkbox"
+                    value="6"
+                    id="colDate"
+                    checked
+                  />
+                  <label class="form-check-label" for="colDate">Date</label>
+                </div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input column-toggle"
+                    type="checkbox"
+                    value="7"
+                    id="colActions"
+                    checked
+                  />
+                  <label class="form-check-label" for="colActions">Actions</label>
+                </div>
+              </div>
+              <div class="dropdown-submenu mt-3">
+                <h6 class="dropdown-header">Theme</h6>
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  id="themeToggleBtn"
+                  type="button"
+                >
+                  🌓 Toggle Theme
+                </button>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
 
-    <form id="leadForm" class="card p-4 shadow-sm mb-4">
-      <div class="row g-3">
-        <div class="col-md-6">
-          <input type="text" class="form-control" placeholder="First Name" name="firstName" required autocomplete="given-name" />
-        </div>
-        <div class="col-md-6">
-          <input type="text" class="form-control" placeholder="Last Name" name="lastName" required autocomplete="family-name" />
-        </div>
-        <div class="col-md-6">
-          <input type="email" class="form-control" placeholder="Email" name="email" required autocomplete="email" />
-        </div>
-        <div class="col-md-6">
-          <input type="text" class="form-control" placeholder="Phone" name="phone" required autocomplete="tel" />
-        </div>
-        <div class="col-md-6">
-          <input type="text" class="form-control" placeholder="Tort Type" name="tortType" required />
-        </div>
-      </div>
-      <button type="submit" class="btn btn-primary mt-3">Create Lead</button>
-      <div id="formMsg" class="mt-2"></div>
-    </form>
-
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h5 class="card-title mb-0">Lead List</h5>
-          <select class="form-select w-auto" id="statusFilter" aria-label="Filter leads by status">
-            <option value="all">All</option>
-            <option value="NEW">NEW</option>
-            <option value="CONTACTED">CONTACTED</option>
-            <option value="VERIFIED">VERIFIED</option>
-            <option value="SUBMITTED">SUBMITTED</option>
-            <option value="CLOSED">CLOSED</option>
-          </select>
-        </div>
-        <table class="table table-bordered table-striped" id="leadsTable" aria-label="List of leads">
-          <thead class="table-light">
-            <tr>
-              <th class="sortable" scope="col" onclick="sortTable('firstName')" tabindex="0">First Name</th>
-              <th class="sortable" scope="col" onclick="sortTable('lastName')" tabindex="0">Last Name</th>
-              <th class="sortable" scope="col" onclick="sortTable('phone')" tabindex="0">Phone</th>
-              <th class="sortable" scope="col" onclick="sortTable('email')" tabindex="0">Email</th>
-              <th class="sortable" scope="col" onclick="sortTable('tortType')" tabindex="0">Tort</th>
-              <th class="sortable" scope="col" onclick="sortTable('status')" tabindex="0">Status</th>
-              <th class="sortable" scope="col" onclick="sortTable('createdAt')" tabindex="0">Date</th>
-              <th scope="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="leadsBody"></tbody>
-        </table>
-      </div>
-    </div>
+    <!-- Lead List Table -->
+    <table class="table table-striped table-hover" id="leadsTable">
+      <thead>
+        <tr>
+          <th class="sortable" data-col="firstName">First Name <span class="sort-arrow"></span></th>
+          <th class="sortable" data-col="lastName">Last Name <span class="sort-arrow"></span></th>
+          <th class="sortable" data-col="phone">Phone <span class="sort-arrow"></span></th>
+          <th class="sortable" data-col="email">Email <span class="sort-arrow"></span></th>
+          <th class="sortable" data-col="tortType">Tort <span class="sort-arrow"></span></th>
+          <th class="sortable" data-col="status">Status <span class="sort-arrow"></span></th>
+          <th class="sortable" data-col="createdAt">Date <span class="sort-arrow"></span></th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="leadsBody"></tbody>
+    </table>
   </div>
 
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+  ></script>
   <script>
-    const backendURL = 'https://crm-backend2-fhi5.onrender.com';
+    // Toggle display submenu on clicking Display header
+    document
+      .getElementById("displayHeader")
+      .addEventListener("click", () => {
+        const submenu = document.getElementById("displaySubmenu");
+        submenu.style.display =
+          submenu.style.display === "none" ? "block" : "none";
+      });
 
-    let currentFilter = 'all';
-    let sortKey = 'createdAt';
-    let sortOrder = -1;
+    // Theme toggle button
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    themeToggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("bg-light");
+      document.body.classList.toggle("bg-dark");
+      document.body.classList.toggle("text-white");
+    });
 
+    // Column toggle checkboxes logic
+    const columnToggles = document.querySelectorAll(".column-toggle");
+    columnToggles.forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        toggleColumn(parseInt(checkbox.value), checkbox.checked);
+      });
+    });
+
+    function toggleColumn(colIndex, show) {
+      const table = document.getElementById("leadsTable");
+      // Toggle header
+      table.tHead.rows[0].cells[colIndex].style.display = show ? "" : "none";
+      // Toggle each row cell
+      for (const row of table.tBodies[0].rows) {
+        row.cells[colIndex].style.display = show ? "" : "none";
+      }
+    }
+
+    // Sample: Initialize all columns shown by default
+    window.onload = () => {
+      // Show all columns initially (just in case)
+      columnToggles.forEach((checkbox) => {
+        toggleColumn(parseInt(checkbox.value), checkbox.checked);
+      });
+      fetchLeads();
+    };
+
+    // Fetch leads from backend (replace URL as needed)
     async function fetchLeads() {
       try {
-        const res = await fetch(`${backendURL}/leads`);
-        if (!res.ok) throw new Error('Failed to load leads.');
+        const res = await fetch("https://crm-backend2-fhi5.onrender.com/leads");
+        if (!res.ok) throw new Error("Failed to load leads.");
         const leads = await res.json();
-
-        const tbody = document.getElementById('leadsBody');
-        tbody.innerHTML = '';
-
-        const filtered = currentFilter === 'all'
-          ? leads
-          : leads.filter(lead => lead.status.toUpperCase() === currentFilter);
-
-        filtered.sort((a, b) => {
-          let valA = a[sortKey];
-          let valB = b[sortKey];
-          if (typeof valA === 'string') valA = valA.toLowerCase();
-          if (typeof valB === 'string') valB = valB.toLowerCase();
-          return sortOrder * (valA > valB ? 1 : valA < valB ? -1 : 0);
-        });
-
-        filtered.forEach(lead => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'firstName', this.innerText.trim())" aria-label="First Name">${lead.firstName}</td>
-            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'lastName', this.innerText.trim())" aria-label="Last Name">${lead.lastName}</td>
-            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'phone', this.innerText.trim())" aria-label="Phone">${lead.phone}</td>
-            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'email', this.innerText.trim())" aria-label="Email">${lead.email}</td>
-            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'tortType', this.innerText.trim())" aria-label="Tort Type">${lead.tortType}</td>
-            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'status', this.innerText.trim().toUpperCase())" aria-label="Status">
-              <span class="status-badge status-${lead.status}">${lead.status}</span>
-            </td>
-            <td>${new Date(lead.createdAt).toLocaleDateString()}</td>
-            <td>
-              <button class="btn btn-sm btn-danger" onclick="deleteLead('${lead._id}')" aria-label="Delete Lead">Delete</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (error) {
-        alert(error.message);
-      }
-    }
-
-    async function inlineEdit(id, field, value) {
-      try {
-        const res = await fetch(`${backendURL}/leads/${id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ [field]: value })
-        });
-        if (!res.ok) throw new Error('Failed to update lead');
-        fetchLeads();
+        displayLeads(leads);
       } catch (err) {
         alert(err.message);
       }
     }
 
-    function sortTable(key) {
-      if (sortKey === key) {
-        sortOrder = -sortOrder;
-      } else {
-        sortKey = key;
-        sortOrder = 1;
-      }
-      fetchLeads();
+    // Display leads in table body
+    function displayLeads(leads) {
+      const tbody = document.getElementById("leadsBody");
+      tbody.innerHTML = "";
+
+      leads.forEach((lead) => {
+        const tr = document.createElement("tr");
+
+        // First Name
+        tr.insertCell().textContent = lead.firstName || "";
+
+        // Last Name
+        tr.insertCell().textContent = lead.lastName || "";
+
+        // Phone
+        tr.insertCell().textContent = lead.phone || "";
+
+        // Email
+        tr.insertCell().textContent = lead.email || "";
+
+        // Tort
+        tr.insertCell().textContent = lead.tortType || "";
+
+        // Status badge with uppercase
+        const statusCell = tr.insertCell();
+        const statusSpan = document.createElement("span");
+        const statusVal = (lead.status || "NEW").toUpperCase();
+        statusSpan.className = `status-badge status-${statusVal}`;
+        statusSpan.textContent = statusVal;
+        statusCell.appendChild(statusSpan);
+
+        // Date formatted
+        const dateCell = tr.insertCell();
+        const dateObj = new Date(lead.createdAt);
+        dateCell.textContent = dateObj.toLocaleDateString() + " " + dateObj.toLocaleTimeString();
+
+        // Actions
+        const actionsCell = tr.insertCell();
+        actionsCell.innerHTML = `<button class="btn btn-sm btn-primary" onclick="editLead('${lead._id}')">Edit</button>`;
+
+        tbody.appendChild(tr);
+      });
     }
 
-    document.getElementById('leadForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const form = e.target;
-      const data = Object.fromEntries(new FormData(form));
-      try {
-        const res = await fetch(`${backendURL}/leads`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.message || 'Failed to create lead');
-        }
-        form.reset();
-        document.getElementById('formMsg').innerHTML = '<div class="alert alert-success">Lead created successfully!</div>';
-        fetchLeads();
-      } catch (err) {
-        document.getElementById('formMsg').innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
-      }
-    });
-
-    document.getElementById('statusFilter').addEventListener('change', (e) => {
-      currentFilter = e.target.value;
-      fetchLeads();
-    });
-
-    async function deleteLead(id) {
-      if (!confirm('Delete this lead?')) return;
-      try {
-        const res = await fetch(`${backendURL}/leads/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Failed to delete lead');
-        fetchLeads();
-      } catch (err) {
-        alert(err.message);
-      }
+    function editLead(id) {
+      alert("Edit lead with ID: " + id + "\n(To be implemented)");
+      // Here you can open a modal or inline edit form to update lead
     }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('bg-dark');
-      document.body.classList.toggle('text-light');
-      document.querySelectorAll('.card').forEach(card => card.classList.toggle('bg-secondary'));
-    }
-
-    fetchLeads();
   </script>
 </body>
 </html>
