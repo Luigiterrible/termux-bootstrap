@@ -2,58 +2,54 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const path = require('path');
-const Lead = require('./models/Lead');
+const Lead = require('./models/Lead'); // Make sure this path is correct
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public'))); // Serve index.html
+app.use(cors());
+
+// Serve static HTML (for frontend UI)
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Debug logs for environment
 console.log("MONGODB_URI:", process.env.MONGODB_URI);
-console.log("Connecting to MongoDB with URI:", process.env.MONGODB_URI ? "exists" : "missing");
-console.log('Starting MongoDB connection...');
+console.log("Connecting to MongoDB...");
 
-// Connect to MongoDB and start server only on success
-mongoose.connect(process.env.MONGODB_URI, {
-  // Note: These options are deprecated but safe to remove if you want
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => {
-  console.log('✅ Connected to MongoDB');
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log('✅ Connected to MongoDB');
 
-  mongoose.connection.on('connected', () => console.log('🟢 Mongoose connected'));
-  mongoose.connection.on('error', err => console.log('🔴 Mongoose error:', err));
-  mongoose.connection.on('disconnected', () => console.log('🟡 Mongoose disconnected'));
+    // Mongoose connection events
+    mongoose.connection.on('connected', () => {
+      console.log('🟢 Mongoose connected to DB');
+    });
+    mongoose.connection.on('error', (err) => {
+      console.log('🔴 Mongoose connection error:', err);
+    });
+    mongoose.connection.on('disconnected', () => {
+      console.log('🟡 Mongoose disconnected from DB');
+    });
 
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    // Start the server only after DB connects
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB connection failed:', err);
+    process.exit(1); // Exit if DB connection fails
   });
-})
-.catch((err) => {
-  console.error('❌ DB Connection Error:', err);
-  process.exit(1);
-});
-
-// Routes
-
-// Test route (optional)
-app.get('/test', (req, res) => {
-  res.send('Test route works!');
-});
 
 // Create a new lead
 app.post('/leads', async (req, res) => {
   try {
     const leadData = req.body;
-    if (leadData.status) {
-      leadData.status = leadData.status.toUpperCase(); // normalize status
-    }
+    leadData.status = 'NEW'; // Default status
     const newLead = new Lead(leadData);
     await newLead.save();
     res.status(201).json({ message: 'Lead created successfully', lead: newLead });
@@ -63,7 +59,7 @@ app.post('/leads', async (req, res) => {
   }
 });
 
-// Get all leads (newest first)
+// Get all leads
 app.get('/leads', async (req, res) => {
   try {
     const leads = await Lead.find().sort({ createdAt: -1 });
@@ -74,15 +70,18 @@ app.get('/leads', async (req, res) => {
   }
 });
 
-// Update a lead (PATCH)
+// Update lead (inline editing)
 app.patch('/leads/:id', async (req, res) => {
   try {
-    const update = req.body;
-    if (update.status) {
-      update.status = update.status.toUpperCase(); // ensure uppercase
+    const { id } = req.params;
+    const updates = req.body;
+
+    if (updates.status) {
+      updates.status = updates.status.toUpperCase(); // Normalize to uppercase
     }
-    const lead = await Lead.findByIdAndUpdate(req.params.id, update, { new: true });
-    res.json(lead);
+
+    const updated = await Lead.findByIdAndUpdate(id, updates, { new: true });
+    res.json({ message: 'Lead updated', lead: updated });
   } catch (error) {
     console.error('Error updating lead:', error);
     res.status(500).json({ message: 'Failed to update lead', error: error.message });
@@ -92,10 +91,16 @@ app.patch('/leads/:id', async (req, res) => {
 // Delete a lead
 app.delete('/leads/:id', async (req, res) => {
   try {
-    await Lead.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+    await Lead.findByIdAndDelete(id);
     res.json({ message: 'Lead deleted' });
   } catch (error) {
     console.error('Error deleting lead:', error);
     res.status(500).json({ message: 'Failed to delete lead', error: error.message });
   }
+});
+
+// Default route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
