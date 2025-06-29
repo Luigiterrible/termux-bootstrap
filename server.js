@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
-const Lead = require('./models/Lead'); // Make sure this path is correct
+const Lead = require('./models/Lead');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,7 +24,6 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
 
-    // Mongoose connection events
     mongoose.connection.on('connected', () => {
       console.log('🟢 Mongoose connected to DB');
     });
@@ -41,7 +40,7 @@ mongoose.connect(process.env.MONGODB_URI)
   })
   .catch((err) => {
     console.error('❌ MongoDB connection failed:', err);
-    process.exit(1); // Exit if DB connection fails
+    process.exit(1);
   });
 
 // Create a new lead - automatically status = 'NEW'
@@ -76,8 +75,8 @@ app.get('/leads/:id', async (req, res) => {
     if (!lead) return res.status(404).json({ message: 'Lead not found' });
     res.json(lead);
   } catch (error) {
-    console.error('Error fetching lead:', error);
-    res.status(500).json({ message: 'Failed to fetch lead', error: error.message });
+    console.error('Error loading lead details:', error);
+    res.status(500).json({ message: 'Failed to load lead details', error: error.message });
   }
 });
 
@@ -86,7 +85,7 @@ app.patch('/leads/:id', async (req, res) => {
   try {
     const updates = req.body;
     if (updates.status) {
-      updates.status = updates.status.toUpperCase(); // normalize status to uppercase
+      updates.status = updates.status.toUpperCase();
     }
     const updated = await Lead.findByIdAndUpdate(req.params.id, updates, { new: true });
     res.json({ message: 'Lead updated', lead: updated });
