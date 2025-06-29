@@ -1,353 +1,163 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lead Manager</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f9f9f9;
-      color: #333;
-    }
-    body.dark {
-      background-color: #1a1a1a;
-      color: #eee;
-    }
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 10px;
-    }
-    h1 {
-      margin: 0;
-    }
-    form, table {
-      width: 100%;
-      max-width: 1000px;
-      margin: 20px auto;
-    }
-    input, button {
-      margin: 5px;
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: left;
-      user-select: none;
-    }
-    th {
-      cursor: move;
-      background-color: #eee;
-    }
-    .dark th {
-      background-color: #333;
-    }
-    .actions button {
-      margin: 0 4px;
-    }
-    #settingsIcon {
-      cursor: pointer;
-      font-size: 22px;
-      user-select: none;
-    }
-    #settingsPanel {
-      position: absolute;
-      right: 20px;
-      top: 60px;
-      background: #fff;
-      border: 1px solid #ccc;
-      padding: 15px;
-      display: none;
-      z-index: 999;
-      max-width: 300px;
-    }
-    .dark #settingsPanel {
-      background: #333;
-      color: #fff;
-      border-color: #555;
-    }
-    .settings-group {
-      margin-bottom: 10px;
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 </head>
-<body>
-  <header>
-    <h1>Lead Manager</h1>
-    <div id="settingsIcon" title="Settings">⚙️</div>
-  </header>
-
-  <div id="settingsPanel" aria-label="Settings Panel">
-    <div class="settings-group">
-      <strong>Display</strong>
-      <div>
-        <label><input type="checkbox" class="column-toggle" value="firstName" checked> First Name</label><br>
-        <label><input type="checkbox" class="column-toggle" value="lastName" checked> Last Name</label><br>
-        <label><input type="checkbox" class="column-toggle" value="phone" checked> Phone</label><br>
-        <label><input type="checkbox" class="column-toggle" value="email" checked> Email</label><br>
-        <label><input type="checkbox" class="column-toggle" value="tortType" checked> Tort</label><br>
-        <label><input type="checkbox" class="column-toggle" value="status" checked> Status</label><br>
-        <label><input type="checkbox" class="column-toggle" value="createdAt" checked> Date</label>
+<body class="min-h-screen p-4">
+  <!-- Header -->
+  <header class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold">Lead Manager</h1>
+    <div class="relative">
+      <button id="settingsBtn" class="text-xl">&#9881;</button>
+      <div id="settingsMenu" class="hidden absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow-lg z-10">
+        <div class="px-4 py-2 font-bold border-b dark:border-gray-700">Display</div>
+        <button id="chooseColumnsBtn" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Choose Columns</button>
+        <button id="themeToggle" class="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700">Toggle Theme</button>
       </div>
     </div>
-    <div class="settings-group">
-      <strong>Theme</strong><br>
-      <button type="button" onclick="toggleTheme()">Toggle Theme</button>
+  </header>
+
+  <!-- Lead Form -->
+  <section class="mb-6 bg-white dark:bg-gray-800 p-4 rounded shadow">
+    <h2 class="text-xl mb-4 font-semibold">Add New Lead</h2>
+    <form id="leadForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <input name="firstName" placeholder="First Name" required class="p-2 border dark:bg-gray-700 rounded"/>
+      <input name="lastName" placeholder="Last Last" required class="p-2 border dark:bg-gray-700 rounded"/>
+      <input name="phone" placeholder="Phone" required class="p-2 border dark:bg-gray-700 rounded"/>
+      <input name="email" placeholder="Email" type="email" required class="p-2 border dark:bg-gray-700 rounded"/>
+      <input name="tortType" placeholder="Tort Type" required class="p-2 border dark:bg-gray-700 rounded"/>
+      <button type="submit" class="col-span-1 md:col-span-2 bg-blue-600 text-white py-2 rounded">Add Lead</button>
+    </form>
+    <p id="message" class="mt-2 text-sm text-green-500"></p>
+  </section>
+
+  <!-- Lead Table -->
+  <section class="bg-white dark:bg-gray-800 p-4 rounded shadow">
+    <div class="overflow-auto">
+      <table class="min-w-full table-auto text-sm">
+        <thead>
+          <tr id="tableHead" class="bg-gray-100 dark:bg-gray-700 text-left">
+            <th class="p-2 cursor-move">First Name</th>
+            <th class="p-2 cursor-move">Last Name</th>
+            <th class="p-2 cursor-move">Phone</th>
+            <th class="p-2 cursor-move">Email</th>
+            <th class="p-2 cursor-move">Tort</th>
+            <th class="p-2 cursor-move">Status</th>
+            <th class="p-2 cursor-move">Date</th>
+            <th class="p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="leadTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Choose Columns Modal -->
+  <div id="columnModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+    <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg max-w-md w-full">
+      <h3 class="text-lg font-semibold mb-4">Choose Columns to Display</h3>
+      <div id="columnOptions" class="space-y-2">
+        <!-- JS populates checkboxes -->
+      </div>
+      <div class="mt-4 text-right">
+        <button id="closeModal" class="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded">Close</button>
+      </div>
     </div>
   </div>
 
-  <form id="leadForm" aria-label="Add New Lead Form">
-    <input type="text" name="firstName" placeholder="First Name" required autocomplete="given-name" />
-    <input type="text" name="lastName" placeholder="Last Name" required autocomplete="family-name" />
-    <input type="tel" name="phone" placeholder="Phone" required autocomplete="tel" />
-    <input type="email" name="email" placeholder="Email" required autocomplete="email" />
-    <input type="text" name="tortType" placeholder="Tort Type" required />
-    <button type="submit">Add Lead</button>
-  </form>
-
-  <table id="leadsTable" aria-label="Leads Table">
-    <thead>
-      <tr id="tableHeaderRow">
-        <th draggable="true" data-field="firstName" scope="col">First Name</th>
-        <th draggable="true" data-field="lastName" scope="col">Last Name</th>
-        <th draggable="true" data-field="phone" scope="col">Phone</th>
-        <th draggable="true" data-field="email" scope="col">Email</th>
-        <th draggable="true" data-field="tortType" scope="col">Tort</th>
-        <th draggable="true" data-field="status" scope="col">Status</th>
-        <th draggable="true" data-field="createdAt" scope="col">Date</th>
-        <th scope="col">Actions</th>
-      </tr>
-    </thead>
-    <tbody id="leadsBody"></tbody>
-  </table>
-
   <script>
-    const apiUrl = "https://crm-backend2-fhi5.onrender.com";
+    const API_URL = "https://crm-backend2-fhi5.onrender.com";
+    const columns = ["First Name", "Last Name", "Phone", "Email", "Tort", "Status", "Date"];
 
-    const settingsIcon = document.getElementById("settingsIcon");
-    const settingsPanel = document.getElementById("settingsPanel");
+    const settingsBtn = document.getElementById("settingsBtn");
+    const settingsMenu = document.getElementById("settingsMenu");
+    settingsBtn.onclick = () => settingsMenu.classList.toggle("hidden");
 
-    settingsIcon.onclick = () => {
-      settingsPanel.style.display = settingsPanel.style.display === "block" ? "none" : "block";
+    // Theme toggle
+    document.getElementById("themeToggle").onclick = () => {
+      document.documentElement.classList.toggle("dark");
     };
 
-    // Toggle column visibility
-    document.querySelectorAll(".column-toggle").forEach(toggle => {
-      toggle.addEventListener("change", () => {
-        const field = toggle.value;
-        const visible = toggle.checked;
-        // Show/hide header
-        document.querySelectorAll(`th[data-field="${field}"]`).forEach(th => {
-          th.style.display = visible ? "" : "none";
-        });
-        // Show/hide corresponding cells
-        document.querySelectorAll(`td[data-field="${field}"]`).forEach(td => {
-          td.style.display = visible ? "" : "none";
-        });
-      });
-    });
+    // Column visibility
+    const columnModal = document.getElementById("columnModal");
+    const chooseColumnsBtn = document.getElementById("chooseColumnsBtn");
+    const columnOptions = document.getElementById("columnOptions");
+    const closeModal = document.getElementById("closeModal");
 
-    // Toggle theme
-    function toggleTheme() {
-      document.body.classList.toggle("dark");
-    }
+    chooseColumnsBtn.onclick = () => {
+      columnModal.classList.remove("hidden");
+      columnOptions.innerHTML = "";
+      document.querySelectorAll("#tableHead th").forEach((th, i) => {
+        const label = columns[i] || `Column ${i + 1}`;
+        columnOptions.innerHTML += `
+          <label class="block"><input type="checkbox" data-col="${i}" checked class="mr-2">${label}</label>`;
+      });
+    };
+    closeModal.onclick = () => columnModal.classList.add("hidden");
+    columnOptions.onchange = (e) => {
+      const col = e.target.dataset.col;
+      const display = e.target.checked ? "" : "none";
+      document.querySelectorAll(`#tableHead th:nth-child(${+col + 1}), #leadTableBody td:nth-child(${+col + 1})`)
+        .forEach(el => el.style.display = display);
+    };
+
+    // Column sorting via drag
+    new Sortable(document.getElementById("tableHead"), {
+      animation: 150,
+    });
 
     // Add new lead
-    document.getElementById("leadForm").addEventListener("submit", async (e) => {
+    document.getElementById("leadForm").onsubmit = async (e) => {
       e.preventDefault();
-      const form = e.target;
-      const lead = {
-        firstName: form.firstName.value.trim(),
-        lastName: form.lastName.value.trim(),
-        phone: form.phone.value.trim(),
-        email: form.email.value.trim(),
-        tortType: form.tortType.value.trim(),
-        status: "new"
-      };
+      const formData = new FormData(e.target);
+      const body = {};
+      for (const [key, value] of formData.entries()) body[key] = value;
 
       try {
-        const res = await fetch(`${apiUrl}/leads`, {
+        const res = await fetch(`${API_URL}/leads`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(lead)
+          body: JSON.stringify(body),
         });
         const data = await res.json();
-        if (res.ok) {
-          alert("Lead created successfully!");
-          form.reset();
-          loadLeads();
-        } else {
-          alert("Failed to create lead: " + (data.message || "Unknown error"));
-        }
+        document.getElementById("message").textContent = data.message;
+        e.target.reset();
+        loadLeads();
       } catch (err) {
-        alert("Error submitting lead.");
-        console.error(err);
+        console.error("Failed to create lead:", err);
+        document.getElementById("message").textContent = "Error submitting lead.";
       }
-    });
+    };
 
-    // Load leads from backend and render
+    // Load leads
     async function loadLeads() {
       try {
-        const res = await fetch(`${apiUrl}/leads`);
-        if (!res.ok) throw new Error("Failed to fetch leads");
+        const res = await fetch(`${API_URL}/leads`);
         const leads = await res.json();
-        const tbody = document.getElementById("leadsBody");
+        const tbody = document.getElementById("leadTableBody");
         tbody.innerHTML = "";
-
         leads.forEach(lead => {
           const row = document.createElement("tr");
+          row.className = "border-t border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800";
           row.innerHTML = `
-            <td data-field="firstName" contenteditable="true">${escapeHtml(lead.firstName)}</td>
-            <td data-field="lastName" contenteditable="true">${escapeHtml(lead.lastName)}</td>
-            <td data-field="phone" contenteditable="true">${escapeHtml(lead.phone)}</td>
-            <td data-field="email" contenteditable="true">${escapeHtml(lead.email)}</td>
-            <td data-field="tortType" contenteditable="true">${escapeHtml(lead.tortType)}</td>
-            <td data-field="status" contenteditable="true">${escapeHtml(capitalize(lead.status))}</td>
-            <td data-field="createdAt">${new Date(lead.createdAt).toLocaleDateString()}</td>
-            <td class="actions">
-              <button onclick="saveLead('${lead._id}', this)">Save</button>
-            </td>
+            <td class="p-2">${lead.firstName}</td>
+            <td class="p-2">${lead.lastName}</td>
+            <td class="p-2">${lead.phone}</td>
+            <td class="p-2">${lead.email}</td>
+            <td class="p-2">${lead.tortType}</td>
+            <td class="p-2">${lead.status}</td>
+            <td class="p-2">${new Date(lead.createdAt).toLocaleDateString()}</td>
+            <td class="p-2 text-blue-600 cursor-pointer underline" onclick="window.open('lead-details.html?id=${lead._id}', '_blank')">View</td>
           `;
           tbody.appendChild(row);
         });
-
-        // Apply current column visibility settings
-        document.querySelectorAll(".column-toggle").forEach(toggle => {
-          const field = toggle.value;
-          const visible = toggle.checked;
-          document.querySelectorAll(`th[data-field="${field}"]`).forEach(th => {
-            th.style.display = visible ? "" : "none";
-          });
-          document.querySelectorAll(`td[data-field="${field}"]`).forEach(td => {
-            td.style.display = visible ? "" : "none";
-          });
-        });
-
       } catch (err) {
-        console.error(err);
-        alert("Failed to load leads.");
+        console.error("Failed to load leads:", err);
       }
-    }
-
-    // Save edited lead
-    async function saveLead(id, btn) {
-      const row = btn.closest("tr");
-      const updatedLead = {
-        firstName: row.children[0].textContent.trim(),
-        lastName: row.children[1].textContent.trim(),
-        phone: row.children[2].textContent.trim(),
-        email: row.children[3].textContent.trim(),
-        tortType: row.children[4].textContent.trim(),
-        status: row.children[5].textContent.trim().toLowerCase(),
-      };
-
-      try {
-        const res = await fetch(`${apiUrl}/leads/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updatedLead)
-        });
-        if (res.ok) {
-          alert("Lead updated successfully!");
-          loadLeads();
-        } else {
-          alert("Failed to update lead.");
-        }
-      } catch (err) {
-        alert("Error updating lead.");
-        console.error(err);
-      }
-    }
-
-    // Sort leads when clicking headers
-    document.querySelectorAll("th[data-field]").forEach(th => {
-      let asc = true;
-      th.addEventListener("click", () => {
-        const field = th.dataset.field;
-        sortLeads(field, asc);
-        asc = !asc;
-      });
-    });
-
-    function sortLeads(field, asc) {
-      const tbody = document.getElementById("leadsBody");
-      const rows = Array.from(tbody.rows);
-      rows.sort((a, b) => {
-        const valA = a.querySelector(`[data-field="${field}"]`)?.textContent.trim().toLowerCase() || "";
-        const valB = b.querySelector(`[data-field="${field}"]`)?.textContent.trim().toLowerCase() || "";
-        if (field === "createdAt") {
-          return asc ? new Date(valA) - new Date(valB) : new Date(valB) - new Date(valA);
-        }
-        return asc ? valA.localeCompare(valB) : valB.localeCompare(valA);
-      });
-      rows.forEach(row => tbody.appendChild(row));
-    }
-
-    // Drag and drop for column reordering (headers + all rows)
-    const headerRow = document.getElementById("tableHeaderRow");
-    let draggedColIndex = null;
-
-    headerRow.querySelectorAll("th[draggable='true']").forEach(th => {
-      th.addEventListener("dragstart", e => {
-        draggedColIndex = e.target.cellIndex;
-        e.dataTransfer.effectAllowed = "move";
-      });
-
-      th.addEventListener("dragover", e => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-      });
-
-      th.addEventListener("drop", e => {
-        e.preventDefault();
-        const targetColIndex = e.target.cellIndex;
-        if (draggedColIndex === null || targetColIndex === draggedColIndex) return;
-
-        // Move header cell
-        if (draggedColIndex < targetColIndex) {
-          headerRow.insertBefore(headerRow.cells[draggedColIndex], headerRow.cells[targetColIndex].nextSibling);
-        } else {
-          headerRow.insertBefore(headerRow.cells[draggedColIndex], headerRow.cells[targetColIndex]);
-        }
-
-        // Move all cells in each row accordingly
-        const tbody = document.getElementById("leadsBody");
-        Array.from(tbody.rows).forEach(row => {
-          if (draggedColIndex < targetColIndex) {
-            row.insertBefore(row.cells[draggedColIndex], row.cells[targetColIndex].nextSibling);
-          } else {
-            row.insertBefore(row.cells[draggedColIndex], row.cells[targetColIndex]);
-          }
-        });
-
-        draggedColIndex = null;
-      });
-    });
-
-    // Helper to escape HTML
-    function escapeHtml(text) {
-      return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    // Capitalize first letter helper
-    function capitalize(s) {
-      return s && s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1) : s;
     }
 
     loadLeads();
