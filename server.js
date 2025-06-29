@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 const Lead = require('./models/Lead'); // Make sure this path is correct
 
 const app = express();
@@ -11,15 +12,14 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors());
 
-// Serve static HTML (for frontend UI)
-const path = require('path');
+// Serve static files (frontend UI)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Debug logs for environment
 console.log("MONGODB_URI:", process.env.MONGODB_URI);
 console.log("Connecting to MongoDB...");
 
-// Connect to MongoDB
+// Connect to MongoDB and start server
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
@@ -35,7 +35,6 @@ mongoose.connect(process.env.MONGODB_URI)
       console.log('🟡 Mongoose disconnected from DB');
     });
 
-    // Start the server only after DB connects
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
@@ -45,11 +44,11 @@ mongoose.connect(process.env.MONGODB_URI)
     process.exit(1); // Exit if DB connection fails
   });
 
-// Create a new lead
+// Create a new lead - automatically status = 'NEW'
 app.post('/leads', async (req, res) => {
   try {
     const leadData = req.body;
-    leadData.status = 'NEW'; // Default status
+    leadData.status = 'NEW'; // default status
     const newLead = new Lead(leadData);
     await newLead.save();
     res.status(201).json({ message: 'Lead created successfully', lead: newLead });
@@ -59,7 +58,7 @@ app.post('/leads', async (req, res) => {
   }
 });
 
-// Get all leads
+// Get all leads - sorted newest first
 app.get('/leads', async (req, res) => {
   try {
     const leads = await Lead.find().sort({ createdAt: -1 });
@@ -70,17 +69,26 @@ app.get('/leads', async (req, res) => {
   }
 });
 
+// Get one lead by ID (needed for lead details popup)
+app.get('/leads/:id', async (req, res) => {
+  try {
+    const lead = await Lead.findById(req.params.id);
+    if (!lead) return res.status(404).json({ message: 'Lead not found' });
+    res.json(lead);
+  } catch (error) {
+    console.error('Error fetching lead:', error);
+    res.status(500).json({ message: 'Failed to fetch lead', error: error.message });
+  }
+});
+
 // Update lead (inline editing)
 app.patch('/leads/:id', async (req, res) => {
   try {
-    const { id } = req.params;
     const updates = req.body;
-
     if (updates.status) {
-      updates.status = updates.status.toUpperCase(); // Normalize to uppercase
+      updates.status = updates.status.toUpperCase(); // normalize status to uppercase
     }
-
-    const updated = await Lead.findByIdAndUpdate(id, updates, { new: true });
+    const updated = await Lead.findByIdAndUpdate(req.params.id, updates, { new: true });
     res.json({ message: 'Lead updated', lead: updated });
   } catch (error) {
     console.error('Error updating lead:', error);
@@ -91,8 +99,7 @@ app.patch('/leads/:id', async (req, res) => {
 // Delete a lead
 app.delete('/leads/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    await Lead.findByIdAndDelete(id);
+    await Lead.findByIdAndDelete(req.params.id);
     res.json({ message: 'Lead deleted' });
   } catch (error) {
     console.error('Error deleting lead:', error);
@@ -100,7 +107,7 @@ app.delete('/leads/:id', async (req, res) => {
   }
 });
 
-// Default route
+// Default route to serve frontend
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

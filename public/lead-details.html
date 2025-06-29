@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lead Details</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen p-6 font-sans">
+
+  <header class="mb-6">
+    <h1 class="text-3xl font-bold">Lead Details</h1>
+    <button id="closeBtn" class="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Close Window</button>
+  </header>
+
+  <section class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 max-w-4xl mx-auto">
+
+    <h2 class="text-xl font-semibold mb-4">Personal Info</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div>
+        <label class="block font-semibold mb-1">First Name:</label>
+        <p id="firstName" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Last Name:</label>
+        <p id="lastName" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Email:</label>
+        <p id="email" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Phone:</label>
+        <p id="phone" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Address:</label>
+        <p id="address" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">City:</label>
+        <p id="city" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">State:</label>
+        <p id="state" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Zip Code:</label>
+        <p id="zip" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Tort Type:</label>
+        <p id="tortType" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Status:</label>
+        <p id="status" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+      <div>
+        <label class="block font-semibold mb-1">Date Created:</label>
+        <p id="createdAt" class="text-gray-700 dark:text-gray-300">Loading...</p>
+      </div>
+    </div>
+
+    <h2 class="text-xl font-semibold mb-4">Notes</h2>
+    <textarea id="notes" rows="6" placeholder="Enter notes here..." class="w-full p-3 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 resize-y"></textarea>
+    <button id="saveNotesBtn" class="mt-3 px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save Notes</button>
+
+    <h2 class="text-xl font-semibold my-6">Uploaded Documents</h2>
+    <div id="documents" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Document thumbnails will go here -->
+    </div>
+  </section>
+
+<script>
+  // Example: Receive lead ID via query string (e.g. lead-details.html?id=123)
+  const urlParams = new URLSearchParams(window.location.search);
+  const leadId = urlParams.get('id');
+
+  if (!leadId) {
+    alert('No lead ID provided!');
+    throw new Error('No lead ID');
+  }
+
+  // Fetch lead data from your API backend
+  async function fetchLead() {
+    try {
+      const res = await fetch(`https://your-backend-url.com/leads/${leadId}`);
+      if (!res.ok) throw new Error('Failed to fetch lead');
+      const lead = await res.json();
+
+      // Populate fields
+      document.getElementById('firstName').textContent = lead.firstName || '-';
+      document.getElementById('lastName').textContent = lead.lastName || '-';
+      document.getElementById('email').textContent = lead.email || '-';
+      document.getElementById('phone').textContent = lead.phone || '-';
+      document.getElementById('address').textContent = lead.address || '-';
+      document.getElementById('city').textContent = lead.city || '-';
+      document.getElementById('state').textContent = lead.state || '-';
+      document.getElementById('zip').textContent = lead.zip || '-';
+      document.getElementById('tortType').textContent = lead.tortType || '-';
+      document.getElementById('status').textContent = lead.status || '-';
+      document.getElementById('createdAt').textContent = new Date(lead.createdAt).toLocaleString() || '-';
+
+      // Load notes if exist
+      document.getElementById('notes').value = lead.notes || '';
+
+      // Display uploaded docs/images if any
+      const docsContainer = document.getElementById('documents');
+      docsContainer.innerHTML = ''; // Clear any existing
+      if (lead.documents && lead.documents.length > 0) {
+        lead.documents.forEach(doc => {
+          const div = document.createElement('div');
+          div.className = 'border rounded p-2 bg-gray-100 dark:bg-gray-700';
+          if (doc.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = doc.url;
+            img.alt = doc.name || 'Document Image';
+            img.className = 'w-full h-32 object-contain rounded';
+            div.appendChild(img);
+          } else {
+            const link = document.createElement('a');
+            link.href = doc.url;
+            link.textContent = doc.name || 'Document';
+            link.target = '_blank';
+            link.className = 'text-blue-600 underline';
+            div.appendChild(link);
+          }
+          docsContainer.appendChild(div);
+        });
+      } else {
+        docsContainer.textContent = 'No documents uploaded yet.';
+      }
+    } catch (error) {
+      alert('Error loading lead details.');
+      console.error(error);
+    }
+  }
+
+  // Save notes (PUT / PATCH example)
+  async function saveNotes() {
+    const notes = document.getElementById('notes').value;
+    try {
+      const res = await fetch(`https://your-backend-url.com/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes })
+      });
+      if (!res.ok) throw new Error('Failed to save notes');
+      alert('Notes saved successfully.');
+    } catch (error) {
+      alert('Error saving notes.');
+      console.error(error);
+    }
+  }
+
+  document.getElementById('saveNotesBtn').addEventListener('click', saveNotes);
+
+  document.getElementById('closeBtn').addEventListener('click', () => window.close());
+
+  // Initial fetch
+  fetchLead();
+</script>
+
+</body>
+</html>
