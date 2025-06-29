@@ -11,7 +11,9 @@
       border-radius: 5px;
       font-size: 0.8rem;
       color: white;
-      cursor: pointer;
+      display: inline-block;
+      min-width: 70px;
+      text-align: center;
     }
     .status-NEW { background-color: #0d6efd; }
     .status-CONTACTED { background-color: #ffc107; color: black; }
@@ -22,11 +24,8 @@
       cursor: pointer;
       text-decoration: underline;
     }
-    .hidden {
-      display: none;
-    }
-    .drag-handle {
-      cursor: grab;
+    td[contenteditable="true"] {
+      background-color: #f8f9fa;
     }
   </style>
 </head>
@@ -37,16 +36,6 @@
       <button class="btn btn-outline-secondary" onclick="toggleDarkMode()">🌓 Theme</button>
     </div>
 
-    <!-- Column Selector and Order -->
-    <div class="card p-3 mb-4 shadow-sm">
-      <h5>Customize Columns</h5>
-      <small>Drag to reorder, check to show/hide</small>
-      <ul id="columnSelector" class="list-group list-group-horizontal flex-wrap" style="gap:8px; padding-left:0;">
-        <!-- Columns will be populated by JS -->
-      </ul>
-    </div>
-
-    <!-- Form -->
     <form id="leadForm" class="card p-4 shadow-sm mb-4">
       <div class="row g-3">
         <div class="col-md-6">
@@ -56,35 +45,25 @@
           <input type="text" class="form-control" placeholder="Last Name" name="lastName" required autocomplete="family-name" />
         </div>
         <div class="col-md-6">
-          <input type="text" class="form-control" placeholder="Phone" name="phone" required autocomplete="tel" />
-        </div>
-        <div class="col-md-6">
           <input type="email" class="form-control" placeholder="Email" name="email" required autocomplete="email" />
         </div>
         <div class="col-md-6">
-          <input type="text" class="form-control" placeholder="Tort Type" name="tortType" required />
+          <input type="text" class="form-control" placeholder="Phone" name="phone" required autocomplete="tel" />
         </div>
         <div class="col-md-6">
-          <select name="status" class="form-select" aria-label="Status">
-            <option value="NEW" selected>NEW</option>
-            <option value="CONTACTED">CONTACTED</option>
-            <option value="VERIFIED">VERIFIED</option>
-            <option value="SUBMITTED">SUBMITTED</option>
-            <option value="CLOSED">CLOSED</option>
-          </select>
+          <input type="text" class="form-control" placeholder="Tort Type" name="tortType" required />
         </div>
       </div>
       <button type="submit" class="btn btn-primary mt-3">Create Lead</button>
       <div id="formMsg" class="mt-2"></div>
     </form>
 
-    <!-- Lead Table -->
     <div class="card shadow-sm">
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-2">
           <h5 class="card-title mb-0">Lead List</h5>
-          <select class="form-select w-auto" id="statusFilter" aria-label="Filter by status">
-            <option value="all">All Statuses</option>
+          <select class="form-select w-auto" id="statusFilter" aria-label="Filter leads by status">
+            <option value="all">All</option>
             <option value="NEW">NEW</option>
             <option value="CONTACTED">CONTACTED</option>
             <option value="VERIFIED">VERIFIED</option>
@@ -92,413 +71,145 @@
             <option value="CLOSED">CLOSED</option>
           </select>
         </div>
-        <table class="table table-bordered table-hover" id="leadsTable" role="grid" aria-describedby="leadListDescription" aria-label="Leads Table">
-          <caption id="leadListDescription" class="visually-hidden">List of leads with sortable columns and actions</caption>
+        <table class="table table-bordered table-striped" id="leadsTable" aria-label="List of leads">
           <thead class="table-light">
-            <tr id="tableHeaderRow">
-              <!-- Columns headers populated by JS -->
+            <tr>
+              <th class="sortable" scope="col" onclick="sortTable('firstName')" tabindex="0">First Name</th>
+              <th class="sortable" scope="col" onclick="sortTable('lastName')" tabindex="0">Last Name</th>
+              <th class="sortable" scope="col" onclick="sortTable('phone')" tabindex="0">Phone</th>
+              <th class="sortable" scope="col" onclick="sortTable('email')" tabindex="0">Email</th>
+              <th class="sortable" scope="col" onclick="sortTable('tortType')" tabindex="0">Tort</th>
+              <th class="sortable" scope="col" onclick="sortTable('status')" tabindex="0">Status</th>
+              <th class="sortable" scope="col" onclick="sortTable('createdAt')" tabindex="0">Date</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
-          <tbody id="leadsBody">
-            <!-- Populated via JS -->
-          </tbody>
+          <tbody id="leadsBody"></tbody>
         </table>
       </div>
     </div>
   </div>
 
   <script>
-    // Column configuration
-    const allColumns = [
-      { key: 'firstName', label: 'First Name' },
-      { key: 'lastName', label: 'Last Name' },
-      { key: 'phone', label: 'Phone' },
-      { key: 'email', label: 'Email' },
-      { key: 'tortType', label: 'Tort' },
-      { key: 'status', label: 'Status' },
-      { key: 'createdAt', label: 'Date' },
-      { key: 'actions', label: 'Actions' }
-    ];
+    const backendURL = 'https://crm-backend2-fhi5.onrender.com';
 
-    // Load columns config from localStorage or default
-    let visibleColumns = JSON.parse(localStorage.getItem('visibleColumns')) || allColumns.map(c => c.key);
-    let columnOrder = JSON.parse(localStorage.getItem('columnOrder')) || allColumns.map(c => c.key);
-
-    const leadsTable = document.getElementById('leadsTable');
-    const leadsBody = document.getElementById('leadsBody');
-    const columnSelector = document.getElementById('columnSelector');
-    const tableHeaderRow = document.getElementById('tableHeaderRow');
-    const statusFilter = document.getElementById('statusFilter');
-    const formMsg = document.getElementById('formMsg');
-
-    let currentSort = { key: null, asc: true };
     let currentFilter = 'all';
+    let sortKey = 'createdAt';
+    let sortOrder = -1;
 
-    // Render Column Selector UI
-    function renderColumnSelector() {
-      columnSelector.innerHTML = '';
-      columnOrder.forEach(key => {
-        const col = allColumns.find(c => c.key === key);
-        if (!col) return;
-        const li = document.createElement('li');
-        li.className = 'list-group-item d-flex align-items-center';
-        li.style.minWidth = '120px';
-        li.draggable = true;
-        li.dataset.key = col.key;
-
-        const dragHandle = document.createElement('span');
-        dragHandle.textContent = '☰';
-        dragHandle.className = 'me-2 drag-handle';
-        dragHandle.title = 'Drag to reorder';
-        li.appendChild(dragHandle);
-
-        const label = document.createElement('label');
-        label.className = 'form-check-label flex-grow-1';
-        label.textContent = col.label;
-        label.htmlFor = `colChk_${col.key}`;
-
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'form-check-input ms-auto';
-        checkbox.id = `colChk_${col.key}`;
-        checkbox.checked = visibleColumns.includes(col.key);
-        checkbox.addEventListener('change', () => {
-          if (checkbox.checked) {
-            if (!visibleColumns.includes(col.key)) visibleColumns.push(col.key);
-          } else {
-            visibleColumns = visibleColumns.filter(c => c !== col.key);
-          }
-          saveColumnSettings();
-          renderTable();
-        });
-
-        li.appendChild(label);
-        li.appendChild(checkbox);
-        columnSelector.appendChild(li);
-      });
-
-      // Drag & Drop for reordering
-      let dragged = null;
-      columnSelector.querySelectorAll('li').forEach(li => {
-        li.addEventListener('dragstart', (e) => {
-          dragged = li;
-          e.dataTransfer.effectAllowed = 'move';
-        });
-        li.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          const target = e.target.closest('li');
-          if (target && target !== dragged) {
-            const bounding = target.getBoundingClientRect();
-            const offset = bounding.y + bounding.height / 2;
-            if (e.clientY - offset > 0) {
-              target.after(dragged);
-            } else {
-              target.before(dragged);
-            }
-          }
-        });
-        li.addEventListener('drop', () => {
-          e.preventDefault();
-          dragged = null;
-          // Update order
-          columnOrder = Array.from(columnSelector.children).map(li => li.dataset.key);
-          saveColumnSettings();
-          renderTable();
-        });
-      });
-    }
-
-    // Save visible columns and order to localStorage
-    function saveColumnSettings() {
-      localStorage.setItem('visibleColumns', JSON.stringify(visibleColumns));
-      localStorage.setItem('columnOrder', JSON.stringify(columnOrder));
-    }
-
-    // Render table header based on visibleColumns & order
-    function renderTableHeader() {
-      tableHeaderRow.innerHTML = '';
-      columnOrder.forEach(key => {
-        if (!visibleColumns.includes(key)) return;
-        const col = allColumns.find(c => c.key === key);
-        if (!col) return;
-        const th = document.createElement('th');
-        th.scope = 'col';
-        th.className = 'sortable';
-        th.textContent = col.label;
-        th.dataset.key = col.key;
-        th.tabIndex = 0;
-        th.setAttribute('role', 'button');
-        th.setAttribute('aria-label', `Sort by ${col.label}`);
-
-        // Add sort indicator
-        if (currentSort.key === col.key) {
-          th.textContent += currentSort.asc ? ' ▲' : ' ▼';
-        }
-
-        th.onclick = () => {
-          if (currentSort.key === col.key) {
-            currentSort.asc = !currentSort.asc;
-          } else {
-            currentSort.key = col.key;
-            currentSort.asc = true;
-          }
-          renderTable();
-        };
-        tableHeaderRow.appendChild(th);
-      });
-    }
-
-    // Render entire table (header + rows)
-    async function renderTable() {
-      renderTableHeader();
-
+    async function fetchLeads() {
       try {
-        let url = 'http://localhost:3000/leads';
-        if (currentFilter && currentFilter.toLowerCase() !== 'all') {
-          url += '?status=' + encodeURIComponent(currentFilter);
-        }
-        const res = await fetch(url);
+        const res = await fetch(`${backendURL}/leads`);
+        if (!res.ok) throw new Error('Failed to load leads.');
         const leads = await res.json();
 
-        // Sort leads by currentSort
-        if (currentSort.key) {
-          leads.sort((a, b) => {
-            let vA = a[currentSort.key];
-            let vB = b[currentSort.key];
+        const tbody = document.getElementById('leadsBody');
+        tbody.innerHTML = '';
 
-            // Handle date
-            if (currentSort.key === 'createdAt') {
-              vA = new Date(vA);
-              vB = new Date(vB);
-            } else {
-              vA = ('' + vA).toLowerCase();
-              vB = ('' + vB).toLowerCase();
-            }
+        const filtered = currentFilter === 'all'
+          ? leads
+          : leads.filter(lead => lead.status.toUpperCase() === currentFilter);
 
-            if (vA < vB) return currentSort.asc ? -1 : 1;
-            if (vA > vB) return currentSort.asc ? 1 : -1;
-            return 0;
-          });
-        }
-
-        leadsBody.innerHTML = '';
-        leads.forEach(lead => {
-          const tr = document.createElement('tr');
-
-          columnOrder.forEach(key => {
-            if (!visibleColumns.includes(key)) return;
-
-            const td = document.createElement('td');
-
-            if (key === 'status') {
-              const span = document.createElement('span');
-              const statusValue = (lead.status || '').toUpperCase();
-              span.className = `status-badge status-${statusValue}`;
-              span.textContent = statusValue;
-              span.title = 'Click to edit status';
-              span.style.userSelect = 'none';
-              span.style.minWidth = '75px';
-              span.style.display = 'inline-block';
-              span.style.textAlign = 'center';
-
-              // Inline editing on click
-              span.onclick = () => {
-                const select = document.createElement('select');
-                ['NEW','CONTACTED','VERIFIED','SUBMITTED','CLOSED'].forEach(s => {
-                  const option = document.createElement('option');
-                  option.value = s;
-                  option.textContent = s;
-                  if (s === statusValue) option.selected = true;
-                  select.appendChild(option);
-                });
-                select.onblur = async () => {
-                  if (select.value !== statusValue) {
-                    await updateLeadField(lead._id, { status: select.value });
-                    renderTable();
-                  } else {
-                    renderTable();
-                  }
-                };
-                select.onchange = select.onblur;
-                td.innerHTML = '';
-                td.appendChild(select);
-                select.focus();
-              };
-              td.appendChild(span);
-
-            } else if (key === 'actions') {
-              // Actions: Edit and Delete buttons
-              const editBtn = document.createElement('button');
-              editBtn.className = 'btn btn-sm btn-secondary me-2';
-              editBtn.textContent = 'Edit';
-              editBtn.onclick = () => editLeadRow(tr, lead);
-
-              const delBtn = document.createElement('button');
-              delBtn.className = 'btn btn-sm btn-danger';
-              delBtn.textContent = 'Delete';
-              delBtn.onclick = async () => {
-                if (confirm(`Delete lead: ${lead.firstName} ${lead.lastName}?`)) {
-                  await fetch(`http://localhost:3000/leads/${lead._id}`, { method: 'DELETE' });
-                  renderTable();
-                }
-              };
-              td.appendChild(editBtn);
-              td.appendChild(delBtn);
-
-            } else if (key === 'createdAt') {
-              td.textContent = new Date(lead.createdAt).toLocaleString();
-
-            } else {
-              td.textContent = lead[key] || '';
-            }
-
-            tr.appendChild(td);
-          });
-
-          leadsBody.appendChild(tr);
+        filtered.sort((a, b) => {
+          let valA = a[sortKey];
+          let valB = b[sortKey];
+          if (typeof valA === 'string') valA = valA.toLowerCase();
+          if (typeof valB === 'string') valB = valB.toLowerCase();
+          return sortOrder * (valA > valB ? 1 : valA < valB ? -1 : 0);
         });
 
+        filtered.forEach(lead => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'firstName', this.innerText.trim())" aria-label="First Name">${lead.firstName}</td>
+            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'lastName', this.innerText.trim())" aria-label="Last Name">${lead.lastName}</td>
+            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'phone', this.innerText.trim())" aria-label="Phone">${lead.phone}</td>
+            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'email', this.innerText.trim())" aria-label="Email">${lead.email}</td>
+            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'tortType', this.innerText.trim())" aria-label="Tort Type">${lead.tortType}</td>
+            <td contenteditable="true" onblur="inlineEdit('${lead._id}', 'status', this.innerText.trim().toUpperCase())" aria-label="Status">
+              <span class="status-badge status-${lead.status}">${lead.status}</span>
+            </td>
+            <td>${new Date(lead.createdAt).toLocaleDateString()}</td>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="deleteLead('${lead._id}')" aria-label="Delete Lead">Delete</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
       } catch (error) {
-        console.error('Error loading leads:', error);
-        leadsBody.innerHTML = `<tr><td colspan="${visibleColumns.length}" class="text-center text-danger">Failed to load leads.</td></tr>`;
+        alert(error.message);
       }
     }
 
-    // Edit inline for a lead row
-    function editLeadRow(tr, lead) {
-      // Replace cells with inputs for editable fields
-      tr.innerHTML = '';
-
-      columnOrder.forEach(key => {
-        if (!visibleColumns.includes(key)) return;
-
-        const td = document.createElement('td');
-
-        if (key === 'actions') {
-          // Save and Cancel buttons
-          const saveBtn = document.createElement('button');
-          saveBtn.className = 'btn btn-sm btn-success me-2';
-          saveBtn.textContent = 'Save';
-
-          const cancelBtn = document.createElement('button');
-          cancelBtn.className = 'btn btn-sm btn-secondary';
-          cancelBtn.textContent = 'Cancel';
-
-          saveBtn.onclick = async () => {
-            // Gather updated values
-            const updatedData = {};
-            ['firstName', 'lastName', 'phone', 'email', 'tortType', 'status'].forEach(field => {
-              const input = tr.querySelector(`[data-edit-field="${field}"]`);
-              if (input) {
-                if (field === 'status') {
-                  updatedData[field] = input.value.toUpperCase();
-                } else {
-                  updatedData[field] = input.value;
-                }
-              }
-            });
-
-            try {
-              await updateLeadField(lead._id, updatedData);
-              renderTable();
-              formMsg.innerHTML = '<div class="alert alert-success">Lead updated successfully!</div>';
-            } catch {
-              formMsg.innerHTML = '<div class="alert alert-danger">Failed to update lead.</div>';
-            }
-          };
-
-          cancelBtn.onclick = () => {
-            renderTable();
-            formMsg.innerHTML = '';
-          };
-
-          td.appendChild(saveBtn);
-          td.appendChild(cancelBtn);
-
-        } else if (key === 'status') {
-          // Status select input
-          const select = document.createElement('select');
-          ['NEW','CONTACTED','VERIFIED','SUBMITTED','CLOSED'].forEach(s => {
-            const option = document.createElement('option');
-            option.value = s;
-            option.textContent = s;
-            if ((lead.status || '').toUpperCase() === s) option.selected = true;
-            select.appendChild(option);
-          });
-          select.setAttribute('data-edit-field', 'status');
-          td.appendChild(select);
-
-        } else if (key === 'createdAt') {
-          td.textContent = new Date(lead.createdAt).toLocaleString();
-
-        } else {
-          // Text input for other fields
-          const input = document.createElement('input');
-          input.type = 'text';
-          input.value = lead[key] || '';
-          input.className = 'form-control form-control-sm';
-          input.setAttribute('data-edit-field', key);
-          td.appendChild(input);
-        }
-
-        tr.appendChild(td);
-      });
-    }
-
-    // Update lead via API PATCH
-    async function updateLeadField(id, data) {
-      const res = await fetch(`http://localhost:3000/leads/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (!res.ok) throw new Error('Update failed');
-    }
-
-    // Form submit to create lead
-    document.getElementById('leadForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      formMsg.innerHTML = '';
-      const form = e.target;
-      const formData = Object.fromEntries(new FormData(form));
-      // Ensure status is uppercase
-      if (formData.status) formData.status = formData.status.toUpperCase();
-
+    async function inlineEdit(id, field, value) {
       try {
-        const res = await fetch('http://localhost:3000/leads', {
+        const res = await fetch(`${backendURL}/leads/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ [field]: value })
+        });
+        if (!res.ok) throw new Error('Failed to update lead');
+        fetchLeads();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    function sortTable(key) {
+      if (sortKey === key) {
+        sortOrder = -sortOrder;
+      } else {
+        sortKey = key;
+        sortOrder = 1;
+      }
+      fetchLeads();
+    }
+
+    document.getElementById('leadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form));
+      try {
+        const res = await fetch(`${backendURL}/leads`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify(data)
         });
         if (!res.ok) {
-          const err = await res.json();
-          formMsg.innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
-          return;
+          const errData = await res.json();
+          throw new Error(errData.message || 'Failed to create lead');
         }
         form.reset();
-        formMsg.innerHTML = '<div class="alert alert-success">Lead created successfully!</div>';
-        renderTable();
+        document.getElementById('formMsg').innerHTML = '<div class="alert alert-success">Lead created successfully!</div>';
+        fetchLeads();
       } catch (err) {
-        formMsg.innerHTML = `<div class="alert alert-danger">Failed to create lead.</div>`;
+        document.getElementById('formMsg').innerHTML = `<div class="alert alert-danger">${err.message}</div>`;
       }
     });
 
-    // Filter leads by status
-    statusFilter.addEventListener('change', () => {
-      currentFilter = statusFilter.value;
-      renderTable();
+    document.getElementById('statusFilter').addEventListener('change', (e) => {
+      currentFilter = e.target.value;
+      fetchLeads();
     });
 
-    // Dark mode toggle
+    async function deleteLead(id) {
+      if (!confirm('Delete this lead?')) return;
+      try {
+        const res = await fetch(`${backendURL}/leads/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Failed to delete lead');
+        fetchLeads();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
     function toggleDarkMode() {
       document.body.classList.toggle('bg-dark');
       document.body.classList.toggle('text-light');
       document.querySelectorAll('.card').forEach(card => card.classList.toggle('bg-secondary'));
     }
 
-    // Initialize UI
-    renderColumnSelector();
-    renderTable();
+    fetchLeads();
   </script>
 </body>
 </html>
