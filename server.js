@@ -11,17 +11,13 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: 'https://crm-backend2-fhi5.onrender.com'  // <-- Your frontend URL here
+  origin: 'https://crm-backend2-fhi5.onrender.com'
 }));
 
-// Serve static files (frontend UI)
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Debug logs for environment
-console.log("MONGODB_URI:", process.env.MONGODB_URI);
-console.log("Connecting to MongoDB...");
-
-// Connect to MongoDB and start server
+// MongoDB connection
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
@@ -45,11 +41,13 @@ mongoose.connect(process.env.MONGODB_URI)
     process.exit(1);
   });
 
-// Create a new lead - automatically status = 'NEW'
+// --- Lead Routes ---
+
+// Create
 app.post('/leads', async (req, res) => {
   try {
     const leadData = req.body;
-    leadData.status = 'NEW'; // default status
+    leadData.status = 'NEW';
     const newLead = new Lead(leadData);
     await newLead.save();
     res.status(201).json({ message: 'Lead created successfully', lead: newLead });
@@ -59,7 +57,7 @@ app.post('/leads', async (req, res) => {
   }
 });
 
-// Get all leads - sorted newest first
+// Read all
 app.get('/leads', async (req, res) => {
   try {
     const leads = await Lead.find().sort({ createdAt: -1 });
@@ -70,7 +68,7 @@ app.get('/leads', async (req, res) => {
   }
 });
 
-// Get one lead by ID (needed for lead details popup)
+// Read one
 app.get('/leads/:id', async (req, res) => {
   try {
     const lead = await Lead.findById(req.params.id);
@@ -82,13 +80,11 @@ app.get('/leads/:id', async (req, res) => {
   }
 });
 
-// Update lead (inline editing)
+// Update
 app.patch('/leads/:id', async (req, res) => {
   try {
     const updates = req.body;
-    if (updates.status) {
-      updates.status = updates.status.toUpperCase();
-    }
+    if (updates.status) updates.status = updates.status.toUpperCase();
     const updated = await Lead.findByIdAndUpdate(req.params.id, updates, { new: true });
     res.json({ message: 'Lead updated', lead: updated });
   } catch (error) {
@@ -97,7 +93,7 @@ app.patch('/leads/:id', async (req, res) => {
   }
 });
 
-// Delete a lead
+// Delete
 app.delete('/leads/:id', async (req, res) => {
   try {
     await Lead.findByIdAndDelete(req.params.id);
@@ -108,12 +104,16 @@ app.delete('/leads/:id', async (req, res) => {
   }
 });
 
-// 🆕 Route to serve Super Admin UI
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+// --- UI Routes ---
+
+// Lead Manager route
+app.get('/leads-dashboard', (req, res) => {
+  console.log('➡️ Serving lead-manager.html');
+  res.sendFile(path.join(__dirname, 'public', 'lead-manager.html'));
 });
 
-// Default route now serves Super Admin UI (admin.html)
+// Admin dashboard as default
 app.get('/', (req, res) => {
+  console.log('➡️ Serving admin.html as default');
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
