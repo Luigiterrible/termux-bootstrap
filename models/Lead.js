@@ -11,6 +11,14 @@ const leadSchema = new mongoose.Schema({
     default: 'NEW', 
     enum: ['NEW', 'CONTACTED', 'VERIFIED', 'SUBMITTED', 'CLOSED'] 
   },
-}, { timestamps: true }); // Adds createdAt and updatedAt automatically
+
+  // 🆕 Added Fields
+  address:   { type: String, trim: true },
+  city:      { type: String, trim: true },
+  zip:       { type: String, trim: true },
+  dob:       { type: Date },
+  notes:     { type: String, trim: true },
+  documents: [{ type: String }]  // URLs or file paths for uploaded files
+}, { timestamps: true });
 
 module.exports = mongoose.model('Lead', leadSchema);
