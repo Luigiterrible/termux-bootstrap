@@ -10,7 +10,9 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: 'https://crm-backend2-fhi5.onrender.com'  // <-- Your frontend URL here
+}));
 
 // Serve static files (frontend UI)
 app.use(express.static(path.join(__dirname, 'public')));
