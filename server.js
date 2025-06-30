@@ -108,7 +108,12 @@ app.delete('/leads/:id', async (req, res) => {
   }
 });
 
-// Default route to serve frontend
+// 🆕 Route to serve Super Admin UI
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Default route to serve CRM dashboard
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
