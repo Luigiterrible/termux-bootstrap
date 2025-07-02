@@ -1,6 +1,6 @@
 // src/components/super-admin/SuperAdminLayout.tsx
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, Outlet } from "react-router-dom";
 
 const menuItems = [
   { label: "Dashboard", path: "/super-admin" },
@@ -20,7 +20,7 @@ const menuItems = [
   { label: "Settings", path: "/super-admin/settings" },
 ];
 
-const SuperAdminLayout = ({ children }: { children: React.ReactNode }) => {
+const SuperAdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
 
@@ -31,9 +31,16 @@ const SuperAdminLayout = ({ children }: { children: React.ReactNode }) => {
           <h2 className="text-lg font-bold mb-4">Super Admin</h2>
           <ul className="space-y-2">
             {menuItems.map(({ label, path }) => {
-              const isActive = location.pathname === path || (label === "Dashboard" && location.pathname === "/super-admin");
+              const isActive =
+                location.pathname === path ||
+                (label === "Dashboard" && location.pathname === "/super-admin");
               return (
-                <li key={path} className={`${isActive ? "bg-blue-700" : "hover:bg-blue-800"} px-3 py-2 rounded`}>
+                <li
+                  key={path}
+                  className={`${
+                    isActive ? "bg-blue-700" : "hover:bg-blue-800"
+                  } px-3 py-2 rounded`}
+                >
                   <Link to={path}>{label}</Link>
                 </li>
               );
@@ -42,14 +49,16 @@ const SuperAdminLayout = ({ children }: { children: React.ReactNode }) => {
         </aside>
       )}
 
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="flex-1 p-6 overflow-auto bg-gray-100">
         <button
           className="mb-4 bg-gray-200 px-4 py-2 rounded"
           onClick={() => setSidebarOpen(!sidebarOpen)}
         >
           {sidebarOpen ? "Hide" : "Show"} Menu
         </button>
-        {children}
+
+        {/* Outlet for nested route rendering */}
+        <Outlet />
       </main>
     </div>
   );

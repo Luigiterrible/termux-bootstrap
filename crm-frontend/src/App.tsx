@@ -1,14 +1,8 @@
-import React from 'react'
-import { Outlet } from 'react-router-dom'
-import Sidebar from './components/Sidebar'
+import React from 'react';
+import { useRoutes } from 'react-router-dom';
+import { routes } from './routes/routes';
 
 export default function App() {
-  return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <main className="flex-1 p-4 overflow-y-auto bg-gray-50">
-        <Outlet />
-      </main>
-    </div>
-  )
+  const element = useRoutes(routes);
+  return element;
 }
