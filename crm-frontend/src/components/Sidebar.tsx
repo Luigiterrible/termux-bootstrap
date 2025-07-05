@@ -1,7 +1,6 @@
-// src/components/Sidebar.tsx
 import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { getUserRole, getClientType } from "../utils/storage"; // ✅ Ruta corregida
+import { getUserRole, getClientType } from "../utils/storage";
 
 const fullMenu = [
   { name: "Dashboard", path: "/super-admin/dashboard" },
@@ -17,33 +16,36 @@ const fullMenu = [
     name: "Verification Workflow",
     path: "/super-admin/verification-workflow",
     subMenus: [
-      {
-        name: "Pending",
-        path: "/super-admin/verification-workflow/pending",
-      },
-      {
-        name: "Verified",
-        path: "/super-admin/verification-workflow/verified",
-      },
+      { name: "Pending", path: "/super-admin/verification-workflow/pending" },
+      { name: "Verified", path: "/super-admin/verification-workflow/verified" },
     ],
   },
   {
     name: "Document Management",
     path: "/super-admin/document-management",
     subMenus: [
-      {
-        name: "Upload",
-        path: "/super-admin/document-management/upload",
-      },
-      {
-        name: "Browse",
-        path: "/super-admin/document-management/browse",
-      },
+      { name: "Upload", path: "/super-admin/document-management/upload" },
+      { name: "Browse", path: "/super-admin/document-management/browse" },
     ],
   },
-  { name: "Communications", path: "/super-admin/communications" },
+  {
+    name: "Communications",
+    path: "/super-admin/communications",
+    subMenus: [
+      { name: "SMS Templates", path: "/super-admin/communications/sms-templates" },
+      { name: "Email Templates", path: "/super-admin/communications/email-templates" },
+    ],
+  },
   { name: "Calendar & Reminders", path: "/super-admin/calendar-reminders" },
-  { name: "Forms", path: "/super-admin/forms" },
+  {
+    name: "Forms",
+    path: "/super-admin/forms",
+    subMenus: [
+      { name: "Form Builder", path: "/super-admin/forms/form-builder" },
+      { name: "Active Forms", path: "/super-admin/forms/active" },
+      { name: "Inactive Forms", path: "/super-admin/forms/inactive" },
+    ],
+  },
   { name: "Users", path: "/super-admin/users" },
   { name: "Client Portal", path: "/super-admin/client-portal" },
   { name: "Campaigns", path: "/super-admin/campaigns" },
@@ -109,8 +111,7 @@ export default function Sidebar() {
 
     const filtered = fullMenu.filter(
       (item) =>
-        allowedByRole.includes(item.name) &&
-        !blockedByClient.includes(item.name)
+        allowedByRole.includes(item.name) && !blockedByClient.includes(item.name)
     );
 
     setFilteredMenu(filtered);
@@ -128,7 +129,10 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-gray-900 text-white h-screen p-6 flex flex-col">
-      <h2 className="text-2xl font-bold mb-8">Super Admin CRM</h2>
+      <div className="text-white text-xl font-semibold text-center mb-4 select-none">
+        Main Menu
+      </div>
+
       <ul className="space-y-3 flex-1 overflow-auto">
         {filteredMenu.map((item) => (
           <li key={item.name}>
@@ -148,9 +152,7 @@ export default function Sidebar() {
                   >
                     {item.name}
                   </span>
-                  <span className="ml-2">
-                    {openMenus.includes(item.name) ? "▼" : "▶"}
-                  </span>
+                  <span className="ml-2">{openMenus.includes(item.name) ? "▼" : "▶"}</span>
                 </button>
                 {openMenus.includes(item.name) && (
                   <ul className="pl-6 mt-1 space-y-1">
@@ -160,9 +162,7 @@ export default function Sidebar() {
                           to={sub.path}
                           className={({ isActive }) =>
                             `block px-3 py-2 rounded hover:bg-gray-800 transition ${
-                              isActive
-                                ? "bg-gray-800 text-blue-400 font-semibold"
-                                : ""
+                              isActive ? "bg-gray-800 text-blue-400 font-semibold" : ""
                             }`
                           }
                         >
@@ -190,6 +190,7 @@ export default function Sidebar() {
           </li>
         ))}
       </ul>
+
       <footer className="mt-auto text-gray-400 text-center text-sm">
         © 2025 Your Company
       </footer>

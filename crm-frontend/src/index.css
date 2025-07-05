@@ -4,3 +4,11 @@
 body {
   font-family: sans-serif;
 }
+
+/* Custom drag placeholder for react-grid-layout */
+.react-grid-item.react-grid-placeholder {
+  background: #cce4f7 !important; /* Light blue */
+  opacity: 0.6;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+}

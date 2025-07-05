@@ -1,8 +1,12 @@
 // src/components/super-admin/SuperAdminLayout.tsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, ReactNode } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import Sidebar from "../Sidebar";
+
+type SuperAdminLayoutProps = {
+  children?: ReactNode;
+};
 
 const titleMap: Record<string, string> = {
   "": "Dashboard",
@@ -23,7 +27,21 @@ const titleMap: Record<string, string> = {
   settings: "Settings",
 };
 
-const SuperAdminLayout = () => {
+const SidebarHeader = () => (
+  <div
+    className="bg-gray-800 flex justify-start items-center"
+    style={{ height: "100px", padding: "0 8px" }}
+  >
+    <img
+      src="/altair-icon.png"
+      alt="Altair Star"
+      style={{ maxHeight: "100%", width: "auto", transform: "scale(1.1)" }}
+      className="transition-transform duration-500 hover:rotate-12 hover:scale-110"
+    />
+  </div>
+);
+
+const SuperAdminLayout = ({ children }: SuperAdminLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -32,7 +50,6 @@ const SuperAdminLayout = () => {
 
   const userRole = localStorage.getItem("userRole") || "Guest";
 
-  // Obtener el segmento relevante para el título (primer segmento tras "/super-admin")
   const pathSegments = location.pathname.split("/").filter(Boolean);
   let key = "";
   if (pathSegments.length > 1 && pathSegments[0] === "super-admin") {
@@ -63,12 +80,14 @@ const SuperAdminLayout = () => {
 
   return (
     <div className="flex h-screen font-sans">
-      {/* Sidebar */}
-      {sidebarOpen && <Sidebar />}
+      {sidebarOpen && (
+        <div className="flex flex-col w-64 bg-gray-900">
+          <SidebarHeader />
+          <Sidebar />
+        </div>
+      )}
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-auto bg-gray-100">
-        {/* Top Bar */}
         <div className="flex items-center justify-between bg-white shadow px-6 py-4 relative">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -76,10 +95,7 @@ const SuperAdminLayout = () => {
           >
             <Menu size={24} />
           </button>
-
           <h1 className="text-lg font-semibold text-gray-700">{pageTitle}</h1>
-
-          {/* Dropdown menu */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -87,7 +103,6 @@ const SuperAdminLayout = () => {
             >
               {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
             </button>
-
             {dropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50 border">
                 <button
@@ -112,11 +127,7 @@ const SuperAdminLayout = () => {
             )}
           </div>
         </div>
-
-        {/* Main Area */}
-        <div className="p-6">
-          <Outlet />
-        </div>
+        <div className="p-6">{children || <Outlet />}</div>
       </div>
     </div>
   );

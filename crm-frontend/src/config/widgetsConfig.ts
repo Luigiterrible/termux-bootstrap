@@ -1,3 +1,5 @@
+// src/config/widgetsConfig.ts
+
 import React from 'react';
 
 // Import all widget components
@@ -21,6 +23,9 @@ import TimeIndicators from '../components/widgets/TimeIndicators';
 import MyTasks from '../components/widgets/MyTasks';
 import BillingSummary from '../components/widgets/BillingSummary';
 import BillingReports from '../components/widgets/BillingReports';
+
+// Your new widget import
+import WeeklyLeadStats from '../components/widgets/WeeklyLeadStats';
 
 export type WidgetConfig = {
   id: string;
@@ -59,6 +64,9 @@ export const widgetsByRole: Record<Role, WidgetConfig[]> = {
 
     { id: 'billing-summary', title: 'Billing Summary', component: BillingSummary },
     { id: 'billing-reports', title: 'Billing Reports', component: BillingReports },
+
+    // Your new widget added here
+    { id: 'weekly-lead-stats', title: 'Weekly Lead Stats', component: WeeklyLeadStats },
   ],
   'admin': [
     { id: 'general-summary', title: 'General Summary', component: GeneralSummary },
@@ -88,7 +96,6 @@ export const widgetsByRole: Record<Role, WidgetConfig[]> = {
     { id: 'billing-reports', title: 'Billing Reports', component: BillingReports },
   ],
   'other': [
-    // You can add default or limited widgets here for unknown/other roles
     { id: 'general-summary', title: 'General Summary', component: GeneralSummary },
   ],
 };

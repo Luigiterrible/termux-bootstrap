@@ -12,6 +12,17 @@ type DashboardProps = {
   userRole: Role;
 };
 
+function sanitizeLayoutItem(item: Layout): Layout {
+  return {
+    i: item.i,
+    x: typeof item.x === 'number' ? item.x : 0,
+    y: typeof item.y === 'number' ? item.y : Infinity, // Use Infinity so ReactGridLayout places it at bottom
+    w: typeof item.w === 'number' ? item.w : 4,
+    h: typeof item.h === 'number' ? item.h : 2,
+    static: item.static || false,
+  };
+}
+
 export default function Dashboard({ userRole }: DashboardProps) {
   const availableWidgets = useMemo(() => widgetsByRole[userRole] || [], [userRole]);
   const [layouts, setLayouts] = useState<Layouts>({});
@@ -24,19 +35,28 @@ export default function Dashboard({ userRole }: DashboardProps) {
     try {
       const savedWidgets = localStorage.getItem(`dashboardWidgets_${userRole}`);
       const savedLayouts = localStorage.getItem(`dashboardLayouts_${userRole}`);
+
       const defaultVisibility: Record<string, boolean> = {};
       availableWidgets.forEach((w) => (defaultVisibility[w.id] = true));
+
       const parsedWidgets = savedWidgets ? JSON.parse(savedWidgets) : defaultVisibility;
+
+      // Filter active widgets according to available widgets and saved state
       const filteredWidgets: Record<string, boolean> = {};
       availableWidgets.forEach(({ id }) => {
         filteredWidgets[id] = parsedWidgets[id] !== undefined ? parsedWidgets[id] : true;
       });
       setActiveWidgets(filteredWidgets);
+
       const parsedLayouts: Layouts = savedLayouts ? JSON.parse(savedLayouts) : {};
       const filteredLayouts: Layouts = {};
+
       Object.entries(parsedLayouts).forEach(([breakpoint, layoutArr]) => {
-        filteredLayouts[breakpoint] = layoutArr.filter((l) => filteredWidgets[l.i]);
+        filteredLayouts[breakpoint] = layoutArr
+          .filter((l) => filteredWidgets[l.i])
+          .map(sanitizeLayoutItem);
       });
+
       setLayouts(filteredLayouts);
     } catch (error) {
       console.error('Failed to load saved dashboard data:', error);
@@ -121,21 +141,21 @@ export default function Dashboard({ userRole }: DashboardProps) {
         <div className="flex gap-4">
           <button
             onClick={resetDashboard}
-            className="bg-red-500 text-white px-4 py-2 rounded border border-black hover:bg-red-600 focus:outline-none"
+            className="bg-blue-200 text-blue-800 px-3 py-1.5 rounded border border-blue-400 hover:bg-blue-300 focus:outline-none text-sm"
             aria-label="Reset dashboard layout and widgets"
           >
             Reset Layout
           </button>
           <button
             onClick={() => setShowWidgetsPanel((v) => !v)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded border border-black flex items-center space-x-2 hover:bg-indigo-700 focus:outline-none"
+            className="bg-blue-200 text-blue-800 px-3 py-1.5 rounded border border-blue-400 flex items-center space-x-2 hover:bg-blue-300 focus:outline-none text-sm"
             aria-expanded={showWidgetsPanel}
             aria-controls="widgets-panel"
             aria-label="Toggle widgets selection panel"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-4 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
