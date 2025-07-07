@@ -5,6 +5,7 @@ import { Navigate } from "react-router-dom";
 import SuperAdminLayout from "../components/super-admin/SuperAdminLayout";
 import UserClientSelector from "../pages/super-admin/UserClientSelector";
 
+// Pages
 import Dashboard from "../pages/super-admin/Dashboard";
 import LeadTracking from "../pages/super-admin/LeadTracking";
 import VerificationWorkflow from "../pages/super-admin/VerificationWorkflow";
@@ -20,15 +21,20 @@ import Integrations from "../pages/super-admin/Integrations";
 import AIIntegration from "../pages/super-admin/AIIntegration";
 import Settings from "../pages/super-admin/Settings";
 
-// Correct imports for lead-intake components (adjusted for folder structure)
+// Lead intake components
 import FormBuilder from "../../components/lead-intake/FormBuilder";
 import ActiveForms from "../../components/lead-intake/ActiveForms";
 import InactiveForms from "../../components/lead-intake/InactiveForms";
+import DefaultFormsWrapper from "../../components/lead-intake/DefaultFormsWrapper";
+import MesotheliomaForm from "../../components/lead-intake/MesotheliomaForm";
 
-// 👇 Import the Role type
+// ✅ Public Mesothelioma form page
+import MesotheliomaPage from "../pages/mesothelioma";
+
+// Role type
 import { Role } from "../config/widgetsConfig";
 
-// 👇 Role-safe helper
+// Get user role from local storage
 const getUserRoleFromStorage = (): Role => {
   const stored = localStorage.getItem("userRole");
   const roles: Role[] = ["super-admin", "admin", "qa", "agent", "billing", "other"];
@@ -39,6 +45,10 @@ export const routes = [
   {
     path: "/",
     element: <UserClientSelector />,
+  },
+  {
+    path: "/mesothelioma",
+    element: <MesotheliomaPage />,
   },
   {
     path: "/super-admin",
@@ -57,12 +67,26 @@ export const routes = [
       { path: "document-management", element: <DocumentManagement /> },
       { path: "communications", element: <Communications /> },
       { path: "calendar-reminders", element: <CalendarReminders /> },
-
-      // Forms submenus routes
-      { path: "forms/form-builder", element: <FormBuilder /> },
+      {
+        path: "forms/default",
+        element: <DefaultFormsWrapper />,
+      },
+      { path: "forms/form-builder", element: <FormBuilder fields={[]} /> },
       { path: "forms/active", element: <ActiveForms /> },
       { path: "forms/inactive", element: <InactiveForms /> },
-
+      {
+        path: "forms/mesothelioma",
+        element: (
+          <MesotheliomaForm
+            onActivateForm={(form) => {
+              alert(`Activated form: ${form.name}`);
+            }}
+            onCustomizeForm={(fields) => {
+              alert(`Customize form with ${fields.length} fields`);
+            }}
+          />
+        ),
+      },
       { path: "users", element: <Users /> },
       { path: "client-portal", element: <ClientPortal /> },
       { path: "campaigns", element: <Campaigns /> },

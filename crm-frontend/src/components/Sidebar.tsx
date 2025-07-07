@@ -41,6 +41,8 @@ const fullMenu = [
     name: "Forms",
     path: "/super-admin/forms",
     subMenus: [
+      // NEW: Default Forms submenu as first item
+      { name: "Default Forms", path: "/super-admin/forms/default" },
       { name: "Form Builder", path: "/super-admin/forms/form-builder" },
       { name: "Active Forms", path: "/super-admin/forms/active" },
       { name: "Inactive Forms", path: "/super-admin/forms/inactive" },
