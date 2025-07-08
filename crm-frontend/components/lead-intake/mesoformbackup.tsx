@@ -1,3 +1,4 @@
+// src/components/lead-intake/MesotheliomaForm.tsx
 import React, { useState } from "react";
 import { mesotheliomaFormFields, FieldType } from "./mesotheliomaFormFields";
 import AddressAutocompleteInput from "../lead-intake/AddressAutocompleteInput"; // Ajusta ruta si es necesario
@@ -7,6 +8,7 @@ type MesotheliomaFormProps = {
 };
 
 const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }) => {
+  // Estado para campos dinámicos / condicionales no en mesotheliomaFormFields
   const [claimFor, setClaimFor] = useState<"myself" | "lovedOne">("myself");
   const [relationshipToVictim, setRelationshipToVictim] = useState("");
   const [victimName, setVictimName] = useState("");
@@ -20,11 +22,13 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
   const [poa, setPoa] = useState(false);
   const [preferredContact, setPreferredContact] = useState<"phone" | "email">("phone");
 
+  // Estado para campos del array mesotheliomaFormFields
   const initialData: Record<string, any> = {};
   mesotheliomaFormFields.forEach((field) => {
     initialData[field.id] = field.type === "checkbox" ? false : "";
   });
 
+  // Para dirección separada en Personal Info
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
@@ -36,7 +40,9 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
+  // Validación simplificada (puedes extenderla)
   const validateForm = () => {
+    // Validar Personal Information (campos separados)
     if (!formData.fullName) {
       alert("Please fill in Full Name.");
       return false;
@@ -65,10 +71,13 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
       alert("Please fill in Email Address.");
       return false;
     }
+    // Validar preferredContact
     if (!preferredContact) {
       alert("Please select preferred method of contact.");
       return false;
     }
+
+    // Claimant Details validations condicionales
     if (claimFor === "lovedOne") {
       if (!relationshipToVictim) {
         alert("Please fill in Relationship to Affected Person.");
@@ -94,7 +103,10 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
         }
       }
     }
+
+    // Validar campos en mesotheliomaFormFields
     for (const field of mesotheliomaFormFields) {
+      // Saltar Personal Information y Claimant Details ya validados aparte
       if (
         field.block === "Personal Information" ||
         field.block === "Claimant Details"
@@ -123,6 +135,7 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
         return false;
       }
     }
+
     return true;
   };
 
@@ -175,6 +188,7 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
     setPreferredContact("phone");
   };
 
+  // Para agrupar los campos restantes (sin Personal Information ni Claimant Details)
   const groupedFields = mesotheliomaFormFields.reduce<Record<string, FieldType[]>>(
     (acc, field) => {
       if (
@@ -451,6 +465,7 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
                 </>
               )}
 
+              {/* Power of Attorney visible siempre */}
               <div className="flex items-center mt-4">
                 <input
                   id="poa"
@@ -466,9 +481,10 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
               </div>
             </>
           )}
+
         </fieldset>
 
-        {/* Otros bloques agrupados */}
+        {/* Renderizar el resto de bloques agrupados (Diagnosis, Treatment Facility, Doctor, etc.) */}
         {Object.entries(groupedFields).map(([block, fields]) => (
           <fieldset key={block} className="border border-gray-300 p-6 rounded-lg">
             <legend className="text-xl font-semibold text-gray-700 mb-4 px-2">
@@ -482,44 +498,85 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
                   disabled: isPreview,
                   readOnly: isPreview && field.type !== "checkbox",
                 };
-                if (field.type === "checkbox") {
-                  return (
-                    <label key={field.id} className="flex items-center text-gray-800 font-medium">
-                      <input
-                        type="checkbox"
-                        checked={!!val}
-                        onChange={(e) => handleChange(field.id, e.target.checked)}
-                        {...commonProps}
-                        className="mr-2"
-                      />
-                      {field.label}
-                    </label>
-                  );
-                }
-                if (field.type === "textarea") {
+
+                if (field.id.toLowerCase().includes("address")) {
                   return (
                     <label key={field.id} className="block text-gray-800 font-medium">
-                      {field.label} {field.required && <span className="text-red-600">*</span>}
-                      <textarea
+                      <div className="mb-1">
+                        {field.label} {field.required && <span className="text-red-600">*</span>}
+                      </div>
+                      <AddressAutocompleteInput
                         value={val}
-                        onChange={(e) => handleChange(field.id, e.target.value)}
-                        {...commonProps}
-                        rows={3}
+                        onChange={(value) => handleChange(field.id, value)}
+                        disabled={isPreview}
+                        placeholder={field.label}
                       />
                     </label>
                   );
                 }
-                return (
-                  <label key={field.id} className="block text-gray-800 font-medium">
-                    {field.label} {field.required && <span className="text-red-600">*</span>}
-                    <input
-                      type={field.type}
-                      value={val}
-                      onChange={(e) => handleChange(field.id, e.target.value)}
-                      {...commonProps}
-                    />
-                  </label>
-                );
+
+                switch (field.type) {
+                  case "checkbox":
+                    return (
+                      <label key={field.id} className="flex items-center text-gray-800 font-medium">
+                        <input
+                          type="checkbox"
+                          checked={val}
+                          onChange={(e) => handleChange(field.id, e.target.checked)}
+                          disabled={isPreview}
+                          className="mr-2"
+                        />
+                        {field.label}
+                      </label>
+                    );
+                  case "textarea":
+                    return (
+                      <label key={field.id} className="block text-gray-800 font-medium">
+                        <div className="mb-1">
+                          {field.label} {field.required && <span className="text-red-600">*</span>}
+                        </div>
+                        <textarea
+                          value={val}
+                          onChange={(e) => handleChange(field.id, e.target.value)}
+                          required={field.required}
+                          {...commonProps}
+                          className={`${commonProps.className} resize-none bg-${isPreview ? "gray-100" : "white"}`}
+                          rows={3}
+                        />
+                      </label>
+                    );
+                  case "phone":
+                    return (
+                      <label key={field.id} className="block text-gray-800 font-medium">
+                        <div className="mb-1">
+                          {field.label} {field.required && <span className="text-red-600">*</span>}
+                        </div>
+                        <input
+                          type="tel"
+                          value={val}
+                          onChange={(e) => handleChange(field.id, e.target.value)}
+                          required={field.required}
+                          placeholder="(555) 123-4567"
+                          {...commonProps}
+                        />
+                      </label>
+                    );
+                  default:
+                    return (
+                      <label key={field.id} className="block text-gray-800 font-medium">
+                        <div className="mb-1">
+                          {field.label} {field.required && <span className="text-red-600">*</span>}
+                        </div>
+                        <input
+                          type={field.type}
+                          value={val}
+                          onChange={(e) => handleChange(field.id, e.target.value)}
+                          required={field.required}
+                          {...commonProps}
+                        />
+                      </label>
+                    );
+                }
               })}
             </div>
           </fieldset>
@@ -527,19 +584,19 @@ const MesotheliomaForm: React.FC<MesotheliomaFormProps> = ({ isPreview = false }
 
         {/* Botones */}
         {!isPreview && (
-          <div className="flex justify-end gap-4 mt-8">
+          <div className="bg-blue-600 p-6 rounded-lg mt-10 flex justify-between items-center">
             <button
               type="button"
               onClick={handleClear}
-              className="px-6 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold"
+              className="bg-white text-blue-600 border border-blue-600 px-6 py-2 rounded hover:bg-blue-100 font-semibold"
             >
-              Clear
+              Clear Form
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded bg-blue-700 hover:bg-blue-800 text-white font-semibold"
+              className="bg-white text-blue-600 border border-blue-600 px-6 py-2 rounded hover:bg-blue-100 font-semibold"
             >
-              Submit
+              Submit Form
             </button>
           </div>
         )}

@@ -35,13 +35,14 @@ export default function DefaultForms({ onActivateForm, onCustomizeForm }: Defaul
     if (!previewForm) return;
     onActivateForm(previewForm);
 
+    // Abrir en nueva pestaña externa
     if (previewForm.id === "mesothelioma") {
       window.open("/mesothelioma", "_blank", "noopener,noreferrer");
-    } else {
-      navigate("/super-admin/forms/active");
     }
 
+    // Volver a la lista de Default Forms
     setPreviewForm(null);
+    navigate("/super-admin/forms/default");
   };
 
   const handleEditAndUseForm = () => {

@@ -17,10 +17,9 @@ export const mesotheliomaFormFields: FieldType[] = [
   { id: "address", label: "Address", type: "text", required: true, block: "Personal Information" },
 
   // Claimant Details
-  { id: "claimantIsVictim", label: "Are you the affected person?", type: "checkbox", required: true, block: "Claimant Details" },
-  { id: "relationToVictim", label: "Relationship to Affected Person", type: "text", required: false, block: "Claimant Details" },
-  { id: "victimDeceased", label: "Is the Affected Person Deceased?", type: "checkbox", required: false, block: "Claimant Details" },
-
+  { id: "claimantIsVictim", label: "Are you the victim?", type: "checkbox", required: true, block: "Claimant Details" },
+  { id: "relationToVictim", label: "Relationship to Victim", type: "text", required: false, block: "Claimant Details" },
+  { id: "victimDeceased", label: "Is the Victim Deceased?", type: "checkbox", required: false, block: "Claimant Details" },
   { id: "deathDate", label: "Date of Death", type: "date", required: false, block: "Claimant Details" },
   { id: "isPOA", label: "Do you have a Power of Attorney (POA)?", type: "checkbox", required: false, block: "Claimant Details" },
 
