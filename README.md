@@ -18,7 +18,7 @@ This repository contains a simple script to bootstrap a new Termux environment w
 If you already have `git` installed:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/termux-bootstrap.git
+git clone https://github.com/MuathAmer/termux-bootstrap.git
 cd termux-bootstrap
 chmod +x setup.sh
 ./setup.sh
@@ -30,7 +30,7 @@ If you don't have `git` but have `curl`:
 
 ```bash
 pkg install curl -y
-bash <(curl -s https://raw.githubusercontent.com/YOUR_USERNAME/termux-bootstrap/main/setup.sh)
+bash <(curl -s https://raw.githubusercontent.com/MuathAmer/termux-bootstrap/main/setup.sh)
 ```
 
 ## After Installation
