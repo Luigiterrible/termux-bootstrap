@@ -127,21 +127,45 @@ install_media_suite() {
     # Added rust and binutils for building pydantic-core (spotdl dependency)
     pkg install python ffmpeg rust binutils -y
     
-    log_info "Installing Python packages (yt-dlp, spotdl)..."
-    pip install yt-dlp spotdl
+    log_info "Installing yt-dlp (Video Downloader)..."
+    if pip install --prefer-binary yt-dlp; then
+        log_info "Configuring yt-dlp..."
+        mkdir -p "$HOME/.config/yt-dlp"
+        # Config: Save to sdcard, cleaner filenames
+        echo '-o /sdcard/Download/Termux/%(title)s.%(ext)s' > "$HOME/.config/yt-dlp/config"
+        echo '--no-mtime' >> "$HOME/.config/yt-dlp/config"
+        
+        # Create Download folder
+        mkdir -p "/sdcard/Download/Termux"
+        log_success "yt-dlp installed & configured."
+    else
+        log_error "yt-dlp installation failed."
+    fi
     
-    log_info "Configuring storage paths..."
-    # Create Download folders in standard Android locations
-    mkdir -p "/sdcard/Download/Termux"
-    mkdir -p "/sdcard/Music/SpotDL"
+    log_info "Installing spotdl (Spotify Downloader)..."
+    log_warn "This step involves compiling heavy dependencies (e.g., rapidfuzz)."
+    log_warn "It may take 5-15 minutes on a phone. Please be patient."
+    
+    # Use timeout if available to prevent infinite hangs (10 mins)
+    local PIP_CMD="pip"
+    if command -v timeout &> /dev/null; then
+        PIP_CMD="timeout 600 pip"
+    fi
 
-    # Configure yt-dlp
-    mkdir -p "$HOME/.config/yt-dlp"
-    # Config: Save to sdcard, cleaner filenames
-    echo '-o /sdcard/Download/Termux/%(title)s.%(ext)s' > "$HOME/.config/yt-dlp/config"
-    echo '--no-mtime' >> "$HOME/.config/yt-dlp/config"
-    
-    log_success "Media Suite installed & configured."
+    if $PIP_CMD install --prefer-binary spotdl; then
+        log_info "Configuring spotdl..."
+        mkdir -p "/sdcard/Music/SpotDL"
+        log_success "spotdl installed."
+    else
+        local EXIT_CODE=$?
+        if [ $EXIT_CODE -eq 124 ]; then
+             log_error "spotdl installation timed out (limit: 10 mins)."
+             log_warn "Your device might be too slow to compile 'rapidfuzz'."
+        else
+             log_error "spotdl installation failed."
+        fi
+        log_warn "Skipping spotdl. You can try installing it manually later with 'pip install spotdl'."
+    fi
 }
 
 install_termux_whisper() {

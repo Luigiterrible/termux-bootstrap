@@ -13,6 +13,7 @@ A modular, safe, and mobile-optimized bootstrap script for your Termux environme
 ### 📦 Community Extras (New!)
 - **Media Suite**: Installs `yt-dlp` (YouTube) and `spotDL` (Spotify) with **FFmpeg**.
     - *Optimized:* Automatically configures downloads to save to `/sdcard/Download/Termux` and `/sdcard/Music`.
+    - *Note:* `spotDL` installation involves compiling heavy dependencies. It may take 5-15 minutes. A timeout protection is in place to prevent infinite hangs.
 - **Termux Whisper**: Installs [termux-whisper](https://github.com/MuathAmer/termux-whisper) for offline, privacy-focused AI speech transcription on your phone.
 
 ### 📱 Mobile Optimizations (Portrait Mode)
