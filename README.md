@@ -1,55 +1,73 @@
-# Termux Bootstrap
+# Termux Bootstrap v2.0
 
-This repository contains a simple script to bootstrap a new Termux environment with essential tools.
+A modular, safe, and modern bootstrap script for your Termux environment. Turn a fresh Termux install into a powerful development environment in minutes.
 
 ## Features
 
-- Updates and upgrades Termux packages.
-- Installs **Git**.
-- Installs **Fish Shell** and sets it as default.
-- Installs **Node.js** (required for Gemini).
-- Installs **Gemini CLI** (`@google/gemini-cli`).
-- Installs **Neofetch** & **Figlet** for a custom terminal look.
-- Configures Fish with `command-not-found` handler and auto-Neofetch.
-- Requests **Termux Storage Access**.
-- Removes the default Termux MOTD.
+### 🚀 Core Tools
+- **Fish Shell**: Friendly interactive shell with auto-completions.
+- **Git**: Distributed version control.
+- **Node.js**: JavaScript runtime (LTS).
+- **Gemini CLI**: Google's AI assistant directly in your terminal.
 
-## Usage
+### 🎨 Modern UI ("The Ricing")
+- **Starship**: Fast, customizable, and beautiful cross-shell prompt.
+- **Lsd**: The next gen `ls` command with colors and icons.
+- **Bat**: A `cat` clone with syntax highlighting and Git integration.
+- **Zoxide**: A smarter `cd` command that remembers your frequent directories.
+- **Fzf**: Command-line fuzzy finder.
+- **Glow**: Render Markdown on the CLI (used for Gemini outputs).
+- **Nerd Fonts**: Automatically installs **JetBrains Mono Nerd Font** for proper icon support.
 
-### Option 1: Clone and Run (Requires Git)
+### 🛡️ Safety & Config
+- **Idempotent**: Can be run multiple times without duplicating configurations.
+- **Backups**: Automatically backs up files (`config.fish`, fonts) before modifying them.
+- **Interactive**: Asks for confirmation before major changes (unless `-y` flag is used).
 
-If you already have `git` installed:
+## Installation
 
-```bash
-git clone https://github.com/MuathAmer/termux-bootstrap.git
-cd termux-bootstrap
-chmod +x setup.sh
-./setup.sh
-```
+### Option 1: One-Liner (Recommended)
 
-### Option 2: One-Liner (Requires Curl)
-
-If you don't have `git` but have `curl`:
+Requires `curl`.
 
 ```bash
 pkg install curl -y
 bash <(curl -s https://raw.githubusercontent.com/MuathAmer/termux-bootstrap/main/setup.sh)
 ```
 
-## After Installation
+### Option 2: Clone and Run
 
+```bash
+pkg install git -y
+git clone https://github.com/MuathAmer/termux-bootstrap.git
+cd termux-bootstrap
+chmod +x setup.sh
+./setup.sh
+```
 
+### Silent Mode (No Prompts)
 
-- **Restart Termux** to apply changes and enter the Fish shell automatically.
+Ideal for automated setups.
 
-- Type `gemini` to start using the Gemini AI assistant.
+```bash
+./setup.sh -y
+```
 
+## Post-Install Guide
 
+1.  **Restart Termux** to load the new font and shell settings.
+2.  **Configure Gemini**:
+    Run the following command (you need an API key from [Google AI Studio](https://aistudio.google.com/)):
+    ```bash
+    gemini configure
+    ```
+3.  **Try the new commands**:
+    *   `ask "How do I reverse a string in Python?"` (AI Assistance)
+    *   `z termux` (Smart jump to directories)
+    *   `ls` (See the new icons)
+    *   `cat README.md` (See syntax highlighting)
 
 ## Credits
 
-
-
-- This project integrates configuration logic and ideas from [termux-fish](https://github.com/msn-05/termux-fish) for the Fish shell setup.
-
-
+- Inspired by [termux-fish](https://github.com/msn-05/termux-fish).
+- Uses [Starship](https://starship.rs) and [Nerd Fonts](https://www.nerdfonts.com).
