@@ -174,10 +174,10 @@ uninstall_packages() {
     fi
 
     # Core Dependencies (High Risk)
-    echo -e "${RED}WARNING:${NC} Uninstalling Core Dependencies (git, fish, python, nodejs, ffmpeg) might break other things."
+    echo -e "${RED}WARNING:${NC} Uninstalling Core Dependencies (git, fish, python, nodejs, ffmpeg, rust, build-essential) might break other things."
     echo "Only do this if you are sure you didn't have them before bootstrapping."
     if prompt_confirm "Uninstall Core Dependencies?" "N"; then
-        pkg uninstall fish git python nodejs-lts ffmpeg termux-api -y
+        pkg uninstall fish git python nodejs-lts ffmpeg termux-api rust binutils build-essential -y
         log_success "Core dependencies uninstalled."
     fi
 }

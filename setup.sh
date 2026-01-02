@@ -65,7 +65,8 @@ update_system() {
 
 install_base_tools() {
     log_info "Installing base tools (Git, Fish, Node.js, Curl, Termux API)..."
-    pkg install git fish nodejs-lts curl termux-api -y
+    # Added build-essential and python for node-gyp native compilations
+    pkg install git fish nodejs-lts curl termux-api build-essential python -y
 }
 
 install_modern_tools() {
@@ -102,7 +103,8 @@ install_gemini() {
 
 install_media_suite() {
     log_info "Installing Media Suite (Python, FFmpeg, yt-dlp, spotDL)..."
-    pkg install python ffmpeg -y
+    # Added rust and binutils for building pydantic-core (spotdl dependency)
+    pkg install python ffmpeg rust binutils -y
     
     log_info "Installing Python packages (yt-dlp, spotdl)..."
     pip install yt-dlp spotdl
@@ -207,12 +209,22 @@ configure_fish() {
     log_info "Configuring Fish Shell..."
     mkdir -p "$CONFIG_DIR"
     
-    # Define the block content
+    # Define the block content markers
     local BLOCK_START="# --- TERMUX-BOOTSTRAP-START ---"
     local BLOCK_END="# --- TERMUX-BOOTSTRAP-END ---"
-    
-    # Prepare the new configuration block
-    local NEW_CONFIG="
+
+    # Remove existing block if present
+    if [ -f "$CONFIG_FILE" ]; then
+        # Backup before modification
+        backup_file "$CONFIG_FILE"
+        # Use sed to delete the block
+        sed -i "/$BLOCK_START/,/$BLOCK_END/d" "$CONFIG_FILE"
+        # Remove trailing newlines potentially left behind
+        sed -i '${/^$/d;}' "$CONFIG_FILE"
+    fi
+
+    # Append new block using cat <<EOF to avoid quoting issues
+    cat <<EOF >> "$CONFIG_FILE"
 $BLOCK_START
 # Core
 set -U fish_greeting # Disable greeting
@@ -305,23 +317,23 @@ end
 
 # Updater Function
 function upgrade-all
-    echo -e \"\\\\033[0;34m[-] Updating System Packages...\\\\033[0m\"
+    echo -e "\\033[0;34m[-] Updating System Packages...\\033[0m"
     pkg update -y && pkg upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
     if command -q npm
-        echo -e \"\\\\033[0;34m[-] Updating NPM Global Packages (Gemini, etc)...\\\\033[0m\"
+        echo -e "\\033[0;34m[-] Updating NPM Global Packages (Gemini, etc)...\\033[0m"
         npm update -g
     end
 
     if command -q pip
-        echo -e \"\\\\033[0;34m[-] Updating Python Tools (yt-dlp, spotdl)...\\\\033[0m\"
+        echo -e "\\033[0;34m[-] Updating Python Tools (yt-dlp, spotdl)...\\033[0m"
         # We assume these are installed; if not, pip will just skip or install them. 
         # Safer to check existence or just run upgrade which is harmless.
         pip install --upgrade yt-dlp spotdl 2>/dev/null
     end
 
     if test -d ~/termux-whisper
-        echo -e \"\\\\033[0;34m[-] Updating Termux Whisper...\\\\033[0m\"
+        echo -e "\\033[0;34m[-] Updating Termux Whisper...\\033[0m"
         # store current dir
         set -l prev_dir (pwd)
         cd ~/termux-whisper
@@ -331,28 +343,16 @@ function upgrade-all
         cd \$prev_dir
     end
 
-    echo -e \"\\\\033[0;32m[OK] Upgrade Complete!\\\\033[0m\"
+    echo -e "\\033[0;32m[OK] Upgrade Complete!\\033[0m"
 end
 $BLOCK_END
-"
+EOF
 
-    # Remove existing block if present
-    if [ -f "$CONFIG_FILE" ]; then
-        # Use sed to delete the block. 
-        # We backup first just in case sed goes wrong.
-        backup_file "$CONFIG_FILE"
-        sed -i "/$BLOCK_START/,/$BLOCK_END/d" "$CONFIG_FILE"
-        # Remove trailing newlines potentially left behind
-        sed -i '${/^$/d;}' "$CONFIG_FILE"
-    fi
-
-    # Append new block
-    echo "$NEW_CONFIG" >> "$CONFIG_FILE"
     log_success "Fish configuration updated."
 }
 
 set_default_shell() {
-    local SHELL_PATH=$(which fish)
+    local SHELL_PATH=$(command -v fish)
     if [ "$SHELL" != "$SHELL_PATH" ]; then
         log_info "Changing default shell to Fish..."
         chsh -s fish
