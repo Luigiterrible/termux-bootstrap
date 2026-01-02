@@ -160,11 +160,26 @@ install_nerd_font() {
 
     log_info "Downloading JetBrains Mono Nerd Font..."
     mkdir -p "$FONT_DIR"
-    # Using a reliable raw link for the font
-    curl -fLo "$FONT_FILE" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf
     
-    log_info "Reloading Termux settings to apply font..."
-    termux-reload-settings
+    local TEMP_FONT="$FONT_DIR/font.ttf.tmp"
+    
+    # Download to temp file first to prevent partial/corrupt writes to active config
+    curl -fLo "$TEMP_FONT" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf
+    
+    # Verify download: Check if file exists and is > 1MB (Fonts are usually ~2MB)
+    if [ -f "$TEMP_FONT" ]; then
+        local FONT_SIZE=$(stat -c%s "$TEMP_FONT")
+        if [ "$FONT_SIZE" -gt 1000000 ]; then
+             mv "$TEMP_FONT" "$FONT_FILE"
+             log_info "Font downloaded successfully ($((FONT_SIZE/1024)) KB)."
+             log_info "Reloading Termux settings to apply font..."
+             termux-reload-settings
+             return
+        fi
+    fi
+
+    log_error "Font download failed or file is corrupted (< 1MB). Aborting font change."
+    rm -f "$TEMP_FONT"
 }
 
 configure_starship_portrait() {
