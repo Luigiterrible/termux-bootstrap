@@ -43,3 +43,13 @@ bash <(curl -s https://raw.githubusercontent.com/MuathAmer/termux-bootstrap/main
 - **Restart Termux** to apply changes and enter the Fish shell automatically.
 
 - Type `gemini` to start using the Gemini AI assistant.
+
+
+
+## Credits
+
+
+
+- This project integrates configuration logic and ideas from [termux-fish](https://github.com/msn-05/termux-fish) for the Fish shell setup.
+
+
