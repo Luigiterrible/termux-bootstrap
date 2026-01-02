@@ -6,10 +6,13 @@ This repository contains a simple script to bootstrap a new Termux environment w
 
 - Updates and upgrades Termux packages.
 - Installs **Git**.
-- Installs **Fish Shell**.
+- Installs **Fish Shell** and sets it as default.
 - Installs **Node.js** (required for Gemini).
 - Installs **Gemini CLI** (`@google/gemini-cli`).
+- Installs **Neofetch** & **Figlet** for a custom terminal look.
+- Configures Fish with `command-not-found` handler and auto-Neofetch.
 - Requests **Termux Storage Access**.
+- Removes the default Termux MOTD.
 
 ## Usage
 
@@ -35,5 +38,8 @@ bash <(curl -s https://raw.githubusercontent.com/MuathAmer/termux-bootstrap/main
 
 ## After Installation
 
-- Type `fish` to enter the Fish shell.
+
+
+- **Restart Termux** to apply changes and enter the Fish shell automatically.
+
 - Type `gemini` to start using the Gemini AI assistant.
