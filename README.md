@@ -91,6 +91,8 @@ To make mobile usage easier, the following shortcuts are included:
 | `copy` | `termux-clipboard-set` | Pipe text to Android clipboard |
 | `paste` | `termux-clipboard-get` | Paste from Android clipboard |
 | `gl` | `git log --oneline...` | **Narrow** git log for phones |
+| `up` | `pkg update && upgrade` | Update system packages |
+| `in` | `pkg install` | Install package(s) |
 | `c` | `clear` | Clear screen |
 | `..` | `cd ..` | Go up one directory |
 
