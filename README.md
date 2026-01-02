@@ -33,6 +33,7 @@ A modular, safe, and mobile-optimized bootstrap script for your Termux environme
 - **Idempotent**: Can be run multiple times without duplicating configurations.
 - **Backups**: Automatically backs up files (`config.fish`, fonts) before modifying them.
 - **Interactive**: Asks for confirmation before major changes (unless `-y` flag is used).
+- **Uninstaller**: Includes `uninstall.sh` to revert changes and restore backups.
 
 ## Installation
 
@@ -62,6 +63,20 @@ Ideal for automated setups.
 ```bash
 ./setup.sh -y
 ```
+
+## Uninstalling
+
+To revert changes, run the `uninstall.sh` script included in the repository:
+
+```bash
+cd termux-bootstrap
+./uninstall.sh
+```
+This script will:
+*   Remove injected configurations from `config.fish`.
+*   Restore backed-up configuration files and fonts (if found).
+*   Offer to uninstall installed packages and tools.
+*   Revert your default shell to Bash.
 
 ## Shortcuts & Aliases
 
