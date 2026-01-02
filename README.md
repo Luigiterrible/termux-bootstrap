@@ -28,7 +28,8 @@ A modular, safe, and mobile-optimized bootstrap script for your Termux environme
 - **Zoxide**: A smarter `cd` command that remembers your frequent directories.
 - **Fzf**: Command-line fuzzy finder.
 - **Glow**: Render Markdown on the CLI (used for Gemini outputs).
-- **Nerd Fonts**: Automatically installs **JetBrains Mono Nerd Font** for proper icon support.
+- **Nerd Fonts**: Automatically installs **JetBrains Mono Nerd Font (No Ligatures)**.
+    - *Why No Ligatures?* Prevents rendering freezes/input lag on some Android devices while still providing icons.
 
 ### 🛡️ Safety & Config
 - **Idempotent**: Can be run multiple times without duplicating configurations.

@@ -211,7 +211,8 @@ install_nerd_font() {
     local TEMP_FONT="$FONT_DIR/font.ttf.tmp"
     
     # Download to temp file first to prevent partial/corrupt writes to active config
-    curl -fLo "$TEMP_FONT" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf
+    # Switched to "No Ligatures" (NL) version to prevent rendering freezes on some Android devices.
+    curl -fLo "$TEMP_FONT" https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/JetBrainsMono/NoLigatures/Regular/JetBrainsMonoNLNerdFont-Regular.ttf
     
     # Verify download: Check if file exists and is > 1MB (Fonts are usually ~2MB)
     if [ -f "$TEMP_FONT" ]; then
