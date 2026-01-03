@@ -163,6 +163,12 @@ uninstall_extras() {
             log_success "Termux Whisper directory removed."
         fi
     fi
+
+    # Bootstrap scripts
+    if [ -f "$HOME/termux-bootstrap/upgrade.sh" ]; then
+        rm "$HOME/termux-bootstrap/upgrade.sh"
+        log_success "Bootstrap upgrade script removed."
+    fi
 }
 
 revert_shell() {
