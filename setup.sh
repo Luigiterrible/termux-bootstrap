@@ -431,7 +431,9 @@ configure_fish() {
     cat <<EOF >> "$CONFIG_FILE"
 $BLOCK_START
 # Core
-set -U fish_greeting # Disable greeting
+function fish_greeting
+    echo -e "\033[0;90m🚀 Termux Bootstrap active. Type '\033[0;36mtb\033[0;90m' for tools.\033[0m"
+end
 
 # Modern Tools Aliases
 if command -q lsd
@@ -454,6 +456,8 @@ alias g='git'
 alias gl='git log --oneline --graph --decorate' # Narrow git log
 alias up='pkg update && pkg upgrade'
 alias in='pkg install'
+alias open='termux-open'
+alias serve='python -m http.server'
 
 # Clipboard Integration (Requires Termux:API app)
 if command -q termux-clipboard-get
@@ -526,6 +530,8 @@ function tb
     echo -e "\n\033[1;32m[System]\033[0m"
     echo -e "  \033[0;36mup\033[0m      : pkg update && upgrade"
     echo -e "  \033[0;36min\033[0m      : pkg install"
+    echo -e "  \033[0;36mopen\033[0m    : Open file in Android app"
+    echo -e "  \033[0;36mserve\033[0m   : Start web server in current dir"
     echo -e "  \033[0;36mcopy\033[0m    : Pipe to Android clipboard"
     echo -e "  \033[0;36mpaste\033[0m   : Paste from Android clipboard"
     echo -e "  \033[0;36mc\033[0m       : Clear screen"

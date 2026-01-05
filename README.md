@@ -95,6 +95,8 @@ To make mobile usage easier, the following shortcuts are included. Type **`tb`**
 | **`music`** | `spotdl ...` | Smart download (Lyrics, LRC, Metadata) |
 | **`whisper`** | `termux-whisper` | Launch the AI Transcriber |
 | **`upgrade-all`** | *(Function)* | Update System, Pip, NPM, & Repos |
+| `open` | `termux-open` | Open file in Android app |
+| `serve` | `python...` | Start web server in current dir |
 | `copy` | `termux-clipboard-set` | Pipe text to Android clipboard |
 | `paste` | `termux-clipboard-get` | Paste from Android clipboard |
 | `gl` | `git log --oneline...` | **Narrow** git log for phones |
