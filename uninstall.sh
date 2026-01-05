@@ -62,67 +62,77 @@ prompt_confirm() {
     done
 }
 
-find_latest_backup() {
-    local file=$1
-    # Finds files named file.bak.*, sorts them, takes the last one
-    ls -1 "${file}".bak.* 2>/dev/null | sort | tail -n 1
-}
-
-# --- Steps ---
-
-revert_fish_config() {
-    log_header "Revert Fish Config"
-    local BLOCK_START="# --- TERMUX-BOOTSTRAP-START ---"
-    local BLOCK_END="# --- TERMUX-BOOTSTRAP-END ---"
-
-    if [ -f "$CONFIG_FILE" ]; then
-        if grep -q "$BLOCK_START" "$CONFIG_FILE"; then
-            log_info "Detected Bootstrap block in config.fish."
-            if prompt_confirm "Remove bootstrap configuration from Fish config?"; then
-                # Create safety backup just in case sed fails
-                cp "$CONFIG_FILE" "${CONFIG_FILE}.uninstall.bak"
-                
-                # Delete the block
-                sed -i "/$BLOCK_START/,/$BLOCK_END/d" "$CONFIG_FILE"
-                # Remove trailing empty lines
-                sed -i '${/^$/d;}' "$CONFIG_FILE"
-                log_success "Fish configuration cleaned."
-            fi
-        else
-            log_info "No bootstrap configuration found in config.fish."
-        fi
-    fi
-}
-
-restore_or_delete_file() {
+restore_interactive() {
     local file=$1
     local name=$2
     
-    if [ -f "$file" ]; then
-        local backup=$(find_latest_backup "$file")
-        
-        if [ -n "$backup" ]; then
-            log_info "Found backup for $name: $(basename "$backup")"
-            if prompt_confirm "Restore $name from backup?"; then
-                mv "$backup" "$file"
-                log_success "$name restored."
-                return
-            fi
-        fi
-        
-        # If no backup or user declined restore
-        if prompt_confirm "Delete $name (reset to default)?"; then
+    if [ ! -f "$file" ]; then
+        return
+    fi
+
+    # Find all backups
+    local backups=($(ls -1 "${file}".bak.* 2>/dev/null | sort -r))
+    local count=${#backups[@]}
+
+    echo -e "${CYAN}:: Configuration: $name${NC}"
+    echo "   Current file: $file"
+
+    if [ "$count" -eq 0 ]; then
+        log_warn "No backups found."
+        if prompt_confirm "Delete current $name (reset to default)?"; then
             rm "$file"
             log_success "$name deleted."
         fi
+        return
     fi
+
+    echo -e "${YELLOW}   Available Snapshots:${NC}"
+    local i=0
+    for bk in "${backups[@]}"; do
+        # Extract timestamp from filename (assuming format .bak.YYYYMMDD_HHMMSS)
+        local ts=$(echo "$bk" | grep -oE '[0-9]{8}_[0-9]{6}')
+        # Format it nicely (YYYY-MM-DD HH:MM:SS)
+        local pretty_ts="${ts:0:4}-${ts:4:2}-${ts:6:2} ${ts:9:2}:${ts:11:2}:${ts:13:2}"
+        echo "   [$i] $pretty_ts ($(basename "$bk"))"
+        ((i++))
+    done
+
+    echo ""
+    echo "   [d] Delete current file (Reset)"
+    echo "   [s] Skip (Keep current)"
+    
+    while true; do
+        read -r -p "$(echo -e "${CYAN}? Action [0-$((count-1))/d/s]: ${NC}")" choice
+        case $choice in
+            [0-9]*)
+                if [ "$choice" -ge 0 ] && [ "$choice" -lt "$count" ]; then
+                    local target="${backups[$choice]}"
+                    log_info "Restoring snapshot: $(basename "$target")..."
+                    mv "$target" "$file"
+                    log_success "$name restored from snapshot."
+                    return
+                else
+                    echo "Invalid number."
+                fi
+                ;;
+            [Dd]* )
+                rm "$file"
+                log_success "$name deleted."
+                return
+                ;;
+            [Ss]* )
+                log_info "Skipping $name."
+                return
+                ;;
+            * ) echo "Please enter a number, 'd', or 's'.";;
+        esac
+    done
 }
 
 revert_font() {
     if [ -f "$FONT_FILE" ]; then
         log_header "Revert Font"
-        log_info "Checking Font configuration..."
-        restore_or_delete_file "$FONT_FILE" "Termux Font"
+        restore_interactive "$FONT_FILE" "Termux Font"
         termux-reload-settings
     fi
 }
@@ -130,9 +140,9 @@ revert_font() {
 clean_configs() {
     log_header "Clean Configurations"
     log_info "Checking configuration files..."
-    restore_or_delete_file "$STARSHIP_CONFIG_FILE" "Starship Config"
-    restore_or_delete_file "$MICRO_CONFIG_FILE" "Micro Editor Config"
-    restore_or_delete_file "$YTDLP_CONFIG_FILE" "yt-dlp Config"
+    restore_interactive "$STARSHIP_CONFIG_FILE" "Starship Config"
+    restore_interactive "$MICRO_CONFIG_FILE" "Micro Editor Config"
+    restore_interactive "$YTDLP_CONFIG_FILE" "yt-dlp Config"
 }
 
 uninstall_extras() {
