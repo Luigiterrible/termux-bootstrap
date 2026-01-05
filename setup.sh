@@ -427,9 +427,13 @@ configure_fish() {
         sed -i '${/^$/d;}' "$CONFIG_FILE"
     fi
 
-    # Append new block using cat <<EOF to avoid quoting issues
-    cat <<EOF >> "$CONFIG_FILE"
-$BLOCK_START
+    # Append new block. 
+    # We use multiple writes to allow quoted heredoc for the body (preventing variable expansion)
+    # while still injecting the block markers.
+    
+    echo "$BLOCK_START" >> "$CONFIG_FILE"
+    
+    cat <<'EOF' >> "$CONFIG_FILE"
 # Core
 function fish_greeting
     echo -e "\033[0;90m🚀 Termux Bootstrap active. Type '\033[0;36mtb\033[0;90m' for tools.\033[0m"
@@ -466,12 +470,12 @@ if command -q termux-clipboard-get
 end
 
 # Media Suite Aliases
-if command -q yt-dlp
-    alias video='yt-dlp'
-end
 if command -q spotdl
     # Advanced Music Downloader (Lyrics, LRC, Metadata Update)
     alias music='spotdl download --output /sdcard/Music/SpotDL --lyrics synced genius musixmatch azlyrics --generate-lrc --overwrite metadata --scan-for-songs --force-update-metadata'
+end
+if command -q yt-dlp
+    alias video='yt-dlp'
 end
 
 # Termux Whisper Alias
@@ -503,9 +507,9 @@ end
 # Termux Command Not Found
 function __fish_command_not_found_handler --on-event fish_command_not_found
     if [ -f /data/data/com.termux/files/usr/libexec/termux/command-not-found ]
-        /data/data/com.termux/files/usr/libexec/termux/command-not-found \$argv[1]
+        /data/data/com.termux/files/usr/libexec/termux/command-not-found $argv[1]
     else
-        printf 'Command not found: %s\n' \$argv[1]
+        printf 'Command not found: %s\n' $argv[1]
     end
 end
 
@@ -580,8 +584,9 @@ end
 function upgrade-all
     bash ~/termux-bootstrap/upgrade.sh
 end
-$BLOCK_END
 EOF
+
+    echo "$BLOCK_END" >> "$CONFIG_FILE"
 
     log_success "Fish configuration updated."
 }
