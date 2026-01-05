@@ -521,7 +521,7 @@ function tb
     
     echo -e "\n\033[1;32m[AI]\033[0m"
     echo -e "  \033[0;36mwhisper\033[0m : AI Speech-to-Text (Offline)"
-    echo -e "  \033[0;36mask\033[0m     : Ask Gemini AI (Requires 'gemini configure')"
+    echo -e "  \033[0;36mask\033[0m     : Ask AI (Supports piping: echo '...' | ask 'Summary')"
     
     echo -e "\n\033[1;32m[Git]\033[0m"
     echo -e "  \033[0;36mg\033[0m       : git shortcut"
@@ -544,15 +544,33 @@ end
 
 # Gemini 'Ask' Helper
 function ask
-    if test -z "\$argv"
-        echo "Usage: ask 'your question'"
-        return 1
-    end
-    # Check if glow is installed for rendering, else plain text
-    if command -q glow
-        gemini "\$argv" | glow -
+    # Enable Google Account Auth for this session
+    set -lx GOOGLE_GENAI_USE_GCA true
+    
+    set -l gemini_args
+    
+    # Automagic Argument Handling
+    if not isatty stdin
+        # Data is being piped (e.g. cat file | ask "Summarize")
+        if test -n "$argv"
+            set gemini_args -p "$argv"
+        else
+            set gemini_args "$argv"
+        end
     else
-        gemini "\$argv"
+        # No pipe, interactive usage
+        if test -z "$argv"
+            echo "Usage: ask 'question' OR echo 'text' | ask 'instruction'"
+            return 1
+        end
+        set gemini_args "$argv"
+    end
+
+    # Execute with Glow rendering if available
+    if command -q glow
+        gemini $gemini_args | glow -
+    else
+        gemini $gemini_args
     end
 end
 
