@@ -506,7 +506,7 @@ function __fish_command_not_found_handler --on-event fish_command_not_found
 end
 
 # Help / Cheat Sheet
-function shortcuts
+function tb
     echo -e "\n\033[1;35m============================================\033[0m"
     echo -e "\033[1;35m       TERMUX BOOTSTRAP SHORTCUTS           \033[0m"
     echo -e "\033[1;35m============================================\033[0m"
@@ -533,7 +533,7 @@ function shortcuts
     echo -e "\n\033[1;32m[Maintenance]\033[0m"
     echo -e "  \033[0;36mupgrade-all\033[0m : Update System + NPM + Pip + Repos"
     
-    echo -e "\n\033[0;33mTip: Type 'shortcuts' anytime to see this list.\033[0m\n"
+    echo -e "\n\033[0;33mTip: Type 'tb' anytime to see this list.\033[0m\n"
 end
 
 # Gemini 'Ask' Helper
@@ -642,6 +642,6 @@ if [ "$DO_AI" -eq 1 ]; then
     echo -e "  ${YELLOW}*${NC} AI Alias: ${BLUE}whisper${NC}."
 fi
 if [ "$DO_FISH" -eq 1 ]; then
-    echo -e "  ${YELLOW}*${NC} Type ${BLUE}shortcuts${NC} for a help guide."
+    echo -e "  ${YELLOW}*${NC} Type ${BLUE}tb${NC} for a help guide."
 fi
 echo "--------------------------------------------"
