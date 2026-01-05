@@ -57,6 +57,73 @@ prompt_confirm() {
     done
 }
 
+finalize_setup() {
+    # Signal completion via Android API
+    if command -v termux-toast &> /dev/null; then
+        termux-toast -g top "Termux Bootstrap Complete!"
+    fi
+    if command -v termux-vibrate &> /dev/null; then
+        termux-vibrate -f -d 500
+    fi
+}
+
+show_menu() {
+    # Default States (1=ON, 0=OFF)
+    # 0:Base, 1:UI, 2:Media, 3:AI, 4:Font
+    local options=("Base Tools" "Modern UI" "Media Suite" "AI Tools" "Nerd Font")
+    local states=(1 1 0 0 1) # Defaults
+    local times_min=(2 1 5 2 1) # Estimated mins (min)
+    local times_max=(3 2 15 5 2) # Estimated mins (max)
+
+    while true; do
+        clear
+        echo -e "${PURPLE}============================================${NC}"
+        echo -e "${PURPLE}       TERMUX BOOTSTRAP v2.3                ${NC}"
+        echo -e "${PURPLE}============================================${NC}"
+        echo -e "Select components to install (Toggle with numbers):"
+        echo ""
+
+        local total_min=0
+        local total_max=0
+
+        for i in "${!options[@]}"; do
+            local mark=" "
+            if [ "${states[$i]}" -eq 1 ]; then
+                mark="x"
+                total_min=$((total_min + times_min[i]))
+                total_max=$((total_max + times_max[i]))
+            fi
+            echo -e " [${mark}] $((i+1)). ${options[$i]}"
+        done
+
+        echo -e "\n ${CYAN}Estimated Time: ${YELLOW}${total_min}-${total_max} minutes${NC}"
+        echo -e "--------------------------------------------"
+        echo -e " Enter number to toggle (e.g. '3'), or ENTER to start."
+        read -r -p " > " selection
+
+        if [ -z "$selection" ]; then
+            break
+        fi
+
+        # Toggle logic
+        if [[ "$selection" =~ ^[1-5]$ ]]; then
+            local idx=$((selection-1))
+            if [ "${states[$idx]}" -eq 1 ]; then
+                states[$idx]=0
+            else
+                states[$idx]=1
+            fi
+        fi
+    done
+
+    # Export choices
+    DO_BASE=${states[0]}
+    DO_UI=${states[1]}
+    DO_MEDIA=${states[2]}
+    DO_AI=${states[3]}
+    DO_FONT=${states[4]}
+}
+
 backup_file() {
     local file=$1
     if [ -f "$file" ]; then
@@ -113,6 +180,9 @@ install_modern_tools() {
     log_info "Installing improved CLI utilities..."
     pkg install lsd bat zoxide fzf starship glow -y
     log_success "Modern tools installed."
+    
+    # Automatically configure Starship if installed (User selected UI module)
+    configure_starship_portrait
 }
 
 install_micro_editor() {
@@ -231,9 +301,7 @@ install_nerd_font() {
     log_header "Nerd Font Installation"
     if [ -f "$FONT_FILE" ]; then
         log_warn "A font is already installed at $FONT_FILE."
-        if ! prompt_confirm "Do you want to overwrite it with JetBrains Mono Nerd Font?"; then
-            return
-        fi
+        log_info "Overwriting with JetBrains Mono Nerd Font (per selection)..."
         backup_file "$FONT_FILE"
     fi
 
@@ -481,69 +549,50 @@ trap cleanup EXIT INT TERM
 
 # Check arguments
 if [ "$1" == "-y" ]; then
+    # Silent Mode defaults: Base + UI + Font (No heavy media/AI)
+    DO_BASE=1; DO_UI=1; DO_MEDIA=0; DO_AI=0; DO_FONT=1
     INTERACTIVE=false
+else
+    # Interactive Menu
+    check_for_updates
+    show_menu
 fi
 
 termux-wake-lock
 log_info "Wake lock acquired. Device will stay awake during setup."
 
-check_for_updates
-
-clear
-echo -e "${GREEN}"
-echo "============================================"
-echo "       TERMUX BOOTSTRAP v2.2                "
-echo "============================================"
-echo -e "${NC}"
-
+# Start Execution
 setup_storage
 
-if prompt_confirm "Update system packages?"; then
-    update_system
-fi
+# Always update system first
+update_system
 
-if prompt_confirm "Install base tools (Git, Fish, Node)?"; then
-    install_base_tools
-fi
-
-if prompt_confirm "Install modern UI tools (Starship, Lsd, Bat, Zoxide)?"; then
+if [ "$DO_BASE" -eq 1 ]; then install_base_tools; fi
+if [ "$DO_UI" -eq 1 ]; then 
     install_modern_tools
-    # Nested prompt for Starship config dependent on Starship installation
-    if prompt_confirm "  -> Configure Starship for Portrait Mode (2-line prompt)?"; then
-        configure_starship_portrait
-    fi
-fi
-
-if prompt_confirm "Install Micro (Touch-friendly editor)?"; then
     install_micro_editor
 fi
+if [ "$DO_MEDIA" -eq 1 ]; then install_media_suite; fi
+if [ "$DO_AI" -eq 1 ]; then install_gemini; install_termux_whisper; fi
+if [ "$DO_FONT" -eq 1 ]; then install_nerd_font; fi
 
-if prompt_confirm "Install Gemini CLI?"; then
-    install_gemini
+# Common Configs
+if [ "$DO_BASE" -eq 1 ] || [ "$DO_UI" -eq 1 ]; then
+    configure_fish
+    set_default_shell
 fi
 
-# Community Extras Section
-if prompt_confirm "Install 'Media Suite' (YouTube & Spotify Downloaders)?"; then
-    install_media_suite
-fi
-
-if prompt_confirm "Install 'Termux Whisper' (Offline Speech-to-Text)?"; then
-    install_termux_whisper
-fi
-
-if prompt_confirm "Install Nerd Font (required for icons)?"; then
-    install_nerd_font
-fi
-
-configure_fish
-set_default_shell
 cleanup_motd
+finalize_setup
 
 echo "--------------------------------------------"
 log_success "Setup Complete!"
 echo -e "  ${YELLOW}*${NC} Please ${GREEN}restart Termux${NC} to apply all changes."
-echo -e "  ${YELLOW}*${NC} New Media Aliases: ${BLUE}music${NC} (spotDL), ${BLUE}video${NC} (yt-dlp)."
-echo -e "  ${YELLOW}*${NC} AI Alias: ${BLUE}whisper${NC} (Speech-to-text)."
-echo -e "  ${YELLOW}*${NC} Maintenance: ${BLUE}upgrade-all${NC} (Updates System + All Tools)."
-echo -e "  ${YELLOW}*${NC} Use ${BLUE}copy/paste${NC} to sync with Android clipboard."
+if [ "$DO_MEDIA" -eq 1 ]; then
+    echo -e "  ${YELLOW}*${NC} Media Aliases: ${BLUE}music${NC}, ${BLUE}video${NC}."
+fi
+if [ "$DO_AI" -eq 1 ]; then
+    echo -e "  ${YELLOW}*${NC} AI Alias: ${BLUE}whisper${NC}."
+fi
+echo -e "  ${YELLOW}*${NC} Type ${BLUE}shortcuts${NC} for a help guide."
 echo "--------------------------------------------"

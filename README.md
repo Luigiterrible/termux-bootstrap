@@ -34,7 +34,8 @@ A modular, safe, and mobile-optimized bootstrap script for your Termux environme
 ### 🛡️ Safety & Config
 - **Idempotent**: Can be run multiple times without duplicating configurations.
 - **Backups**: Automatically backs up files (`config.fish`, fonts) before modifying them.
-- **Interactive**: Asks for confirmation before major changes (unless `-y` flag is used).
+- **Interactive Menu**: Select your components at the start ("Set & Forget").
+- **Smart Notifications**: Vibrates and sends a Toast notification when setup is complete.
 - **Uninstaller**: Includes `uninstall.sh` to revert changes and restore backups.
 
 ## Installation
