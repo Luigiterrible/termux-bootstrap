@@ -65,6 +65,33 @@ backup_file() {
     fi
 }
 
+check_for_updates() {
+    # Only check if running from a git repository
+    if [ -d ".git" ] && command -v git &> /dev/null; then
+        log_info "Checking for script updates..."
+        git fetch -q
+        
+        # Check if behind upstream
+        local LOCAL=$(git rev-parse @ 2>/dev/null)
+        local REMOTE=$(git rev-parse "@{u}" 2>/dev/null)
+        
+        if [ -n "$LOCAL" ] && [ -n "$REMOTE" ] && [ "$LOCAL" != "$REMOTE" ]; then
+             # Check if we are actually behind (ancestor check)
+             if git merge-base --is-ancestor "$LOCAL" "$REMOTE"; then
+                 echo -e "${YELLOW}============================================================${NC}"
+                 echo -e "${YELLOW}  [!] UPDATE AVAILABLE${NC}"
+                 echo -e "${YELLOW}  You are using an outdated version of the setup script.${NC}"
+                 echo -e "${YELLOW}============================================================${NC}"
+                 if prompt_confirm "Update script now?" "Y"; then
+                     git pull
+                     log_success "Updated. Restarting script..."
+                     exec bash "$0" "$@"
+                 fi
+             fi
+        fi
+    fi
+}
+
 # --- Installation Functions ---
 
 update_system() {
@@ -428,6 +455,8 @@ fi
 
 termux-wake-lock
 log_info "Wake lock acquired. Device will stay awake during setup."
+
+check_for_updates
 
 clear
 echo -e "${GREEN}"
