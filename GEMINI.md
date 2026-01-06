@@ -4,9 +4,9 @@
 **Role:** Automated Bootstrap/Setup Manager for Android Termux.
 
 ## 🟢 Current Status
-*   **Version:** v2.4.3
+*   **Version:** v2.4.4
 *   **Phase:** UX Revolution
-*   **Focus:** Automagic Ask Command (Smart Piping/Auth), Mobile Aliases, "Set & Forget" Installer.
+*   **Focus:** Deployment Fixes (One-Liner Persistence), Automagic Ask, Mobile Aliases, "Set & Forget" Installer.
 
 ## 📚 Architecture
 1.  **`setup.sh`:** The core installer. Handles logic, package installation, config injection, and updates.

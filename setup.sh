@@ -190,6 +190,24 @@ check_for_updates() {
     fi
 }
 
+ensure_persistence() {
+    # If running via curl/pipe, we need to clone the repo to ensure 
+    # upgrade-all and uninstall.sh work later.
+    if command -v git &> /dev/null; then
+        local INSTALL_DIR="$HOME/termux-bootstrap"
+        
+        # If we are NOT in the repo, and the repo doesn't exist fully
+        if [ "$PWD" != "$INSTALL_DIR" ] && [ ! -d "$INSTALL_DIR/.git" ]; then
+            log_info "Cloning repository for persistence..."
+            # Remove partial dir if exists
+            if [ -d "$INSTALL_DIR" ]; then rm -rf "$INSTALL_DIR"; fi
+            
+            git clone https://github.com/MuathAmer/termux-bootstrap.git "$INSTALL_DIR"
+            log_success "Repository cloned to $INSTALL_DIR"
+        fi
+    fi
+}
+
 # --- Installation Functions ---
 
 update_system() {
@@ -638,6 +656,9 @@ update_system
 
 if [ "$DO_CORE" -eq 1 ]; then install_core_utils; fi
 if [ "$DO_FISH" -eq 1 ]; then install_fish; fi
+
+# Ensure repo exists for aliases
+ensure_persistence
 
 if [ "$DO_UI" -eq 1 ]; then 
     install_modern_tools

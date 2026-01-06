@@ -49,7 +49,7 @@ Requires `curl`.
 
 ```bash
 pkg install curl -y
-bash <(curl -s https://raw.githubusercontent.com/MuathAmer/termux-bootstrap/main/setup.sh)
+curl -sL https://raw.githubusercontent.com/MuathAmer/termux-bootstrap/main/setup.sh | bash
 ```
 
 ### Option 2: Clone and Run
