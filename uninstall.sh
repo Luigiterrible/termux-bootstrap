@@ -180,6 +180,10 @@ uninstall_extras() {
         rm "$HOME/termux-bootstrap/upgrade.sh"
         log_success "Bootstrap upgrade script removed."
     fi
+    if [ -f "$HOME/termux-bootstrap/tb.sh" ]; then
+        rm "$HOME/termux-bootstrap/tb.sh"
+        log_success "Bootstrap CLI (tb) script removed."
+    fi
 }
 
 revert_shell() {

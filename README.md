@@ -90,11 +90,12 @@ To make mobile usage easier, the following shortcuts are included. Type **`tb`**
 
 | Alias | Command | Description |
 | :--- | :--- | :--- |
-| **`tb`** | *(Function)* | **Display this help guide** |
+| **`tb`** | *(Wrapper)* | **Display help & manage environment** |
+| **`tb update`** | `...` | Update System + Bootstrap (Replaces `upgrade-all`) |
 | **`video`** | `yt-dlp ...` | Download video to `/sdcard/Download/Termux` |
 | **`music`** | `spotdl ...` | Smart download (Lyrics, LRC, Metadata) |
 | **`whisper`** | `termux-whisper` | Launch the AI Transcriber |
-| **`upgrade-all`** | *(Function)* | Update System, Pip, NPM, & Repos |
+| `upgrade-all` | *(Deprecated)* | Alias for `tb update` |
 | `open` | `termux-open` | Open file in Android app |
 | `serve` | `python...` | Start web server in current dir |
 | `copy` | `termux-clipboard-set` | Pipe text to Android clipboard |
