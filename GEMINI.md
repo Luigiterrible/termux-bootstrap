@@ -10,8 +10,10 @@
 
 ## 📚 Architecture
 1.  **`setup.sh`:** The core installer. Handles logic, package installation, config injection, and updates.
-2.  **`uninstall.sh`:** The safety net. Reverts changes, cleaning configs and restoring backups.
-3.  **`README.md`:** The single source of truth for users. Must mirror every feature in scripts.
+2.  **`tb.sh`:** The CLI manager (entry point for `tb help`, `tb update`).
+3.  **`uninstall.sh`:** The safety net. Reverts changes, cleaning configs and restoring backups.
+4.  **`README.md`:** The single source of truth for users. Must mirror every feature in scripts.
+5.  **`CHANGELOG.md`:** Version history and feature log.
 
 ## 🛡️ Gated Protocols
 

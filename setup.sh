@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # ==============================================================================
-# Termux Bootstrap (tb) v2.5.0
+# Termux Bootstrap (tb) v2.6.0
 # A modular, safe, and mobile-optimized setup script for Termux.
 # ==============================================================================
 
@@ -100,7 +100,7 @@ show_menu() {
     while true; do
         clear
         echo -e "${PURPLE}============================================${NC}"
-        echo -e "${PURPLE}       TERMUX BOOTSTRAP (tb) v2.5.0         ${NC}"
+        echo "       TERMUX BOOTSTRAP (tb) v2.6.0         "
         echo -e "${PURPLE}============================================${NC}"
         echo -e "Select components to install (Toggle with numbers):"
         echo ""

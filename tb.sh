@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # ==============================================================================
-# Termux Bootstrap CLI (tb)
+# Termux Bootstrap CLI (tb) v2.6.0
 # The Swiss Army Knife for your Termux Environment.
 # ==============================================================================
 
