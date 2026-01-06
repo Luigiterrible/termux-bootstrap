@@ -1,10 +1,14 @@
-# Termux Bootstrap (tb) v2.5.0
+# Termux Bootstrap (tb) v2.6.0
 
 A modular, safe, and mobile-optimized bootstrap script and CLI manager for your Termux environment. Turn a fresh Termux install into a powerful development environment in minutes.
 
 Now powered by the **`tb`** command-line manager.
 
 [📜 View Changelog](CHANGELOG.md)
+
+| Setup Menu | TB Manager Guide |
+| :---: | :---: |
+| ![Setup](setup.png) | ![TB Menu](tb-menu.png) |
 
 ## Features
 
