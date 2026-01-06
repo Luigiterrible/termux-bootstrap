@@ -235,7 +235,7 @@ echo " | |  | | '_ \| | '_ \/ __| __/ _\` | | |"
 echo " | |__| | | | | | | | \__ \ || (_| | | |"
 echo "  \____/|_| |_|_|_| |_|___/\__\__,_|_|_|"
 echo "                                        "
-echo "          U N I N S T A L L E R         "
+echo "          (tb)  U N I N S T A L L E R   "
 echo -e "${NC}"
 echo "This script will help you revert changes made by Termux Bootstrap."
 

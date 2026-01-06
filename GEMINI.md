@@ -1,4 +1,4 @@
-# Termux Bootstrap Project Context
+# Termux Bootstrap (tb) Project Context
 
 **Tech Stack:** Bash Scripting, Fish Shell, Termux Environment
 **Role:** Automated Bootstrap/Setup Manager for Android Termux.
