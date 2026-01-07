@@ -220,8 +220,14 @@ cmd_update() {
 }
 
 cmd_web() {
+    local MODE=$1
+
     # 1. Critical Dependency Check
-    local critical_deps=("ttyd" "tmux")
+    local critical_deps=("ttyd")
+    if [ "$MODE" != "--simple" ]; then
+        critical_deps+=("tmux")
+    fi
+    
     local missing_critical=()
     for dep in "${critical_deps[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
@@ -239,18 +245,20 @@ cmd_web() {
         fi
     fi
 
-    # 2. Monitor Tool (Optional)
+    # 2. Monitor Tool (Optional, only for Dashboard mode)
     local monitor_cmd="top"
-    if command -v btop &> /dev/null; then
-        monitor_cmd="btop"
-    elif command -v htop &> /dev/null; then
-        monitor_cmd="htop"
-    else
-        # Try to install btop, fallback to htop. Silence errors.
-        if pkg install -y btop &> /dev/null; then
+    if [ "$MODE" != "--simple" ]; then
+        if command -v btop &> /dev/null; then
             monitor_cmd="btop"
-        elif pkg install -y htop &> /dev/null; then
+        elif command -v htop &> /dev/null; then
             monitor_cmd="htop"
+        else
+            # Try to install btop, fallback to htop. Silence errors.
+            if pkg install -y btop &> /dev/null; then
+                monitor_cmd="btop"
+            elif pkg install -y htop &> /dev/null; then
+                monitor_cmd="htop"
+            fi
         fi
     fi
 
@@ -275,36 +283,42 @@ cmd_web() {
         echo -e "Using random password: ${YELLOW}$PASSWORD${NC}"
     fi
 
-    # 6. Tmux Setup
-    # Kill existing session if any to start fresh
-    tmux kill-session -t tb_web 2>/dev/null
-    
-    # Create session, detached
-    tmux new-session -d -s tb_web
-    
-    # Enable mouse support (Crucial for web touch/click focus)
-    tmux set-option -t tb_web -g mouse on
-    
-    # Split window: Top (Shell), Bottom (System Monitor)
-    tmux split-window -h
-    # Run monitor in the right pane
-    tmux send-keys -t tb_web:0.1 "$monitor_cmd" C-m
-    # Focus on the left pane (Shell)
-    tmux select-pane -t tb_web:0.0
-
-    # 7. Start ttyd
     local PORT=8080
     echo -e "\n${GREEN}🚀 Web Terminal Active!${NC}"
     echo -e "🔗 URL:  ${CYAN}http://$IP:$PORT${NC}"
     echo -e "🔐 Creds: user: ${YELLOW}tb${NC} / pass: ${YELLOW}$PASSWORD${NC}"
     echo -e "${BLUE}(Press Ctrl+C to stop)${NC}"
 
-    # Trap to cleanup
-    trap "tmux kill-session -t tb_web; termux-wake-unlock; echo -e '\nStopped.'; exit" INT TERM
+    if [ "$MODE" == "--simple" ]; then
+        # Simple Mode: Direct Shell
+        echo -e "${YELLOW}[i] Simple mode (No tmux/dashboard).${NC}"
+        trap "termux-wake-unlock; echo -e '\nStopped.'; exit" INT TERM
+        ttyd -p $PORT -c "tb:$PASSWORD" fish
+    else
+        # Dashboard Mode: Tmux
+        # Kill existing session if any to start fresh
+        tmux kill-session -t tb_web 2>/dev/null
+        
+        # Create session, detached
+        tmux new-session -d -s tb_web
+        
+        # Enable mouse support (Crucial for web touch/click focus)
+        tmux set-option -t tb_web -g mouse on
+        
+        # Split window: Top (Shell), Bottom (System Monitor)
+        tmux split-window -h
+        # Run monitor in the right pane
+        tmux send-keys -t tb_web:0.1 "$monitor_cmd" C-m
+        # Focus on the left pane (Shell)
+        tmux select-pane -t tb_web:0.0
 
-    # Run ttyd (blocking)
-    # Wrap in bash to ensure proper signal handling/IO
-    ttyd -p $PORT -c "tb:$PASSWORD" bash -c "tmux attach-session -t tb_web"
+        # Trap to cleanup
+        trap "tmux kill-session -t tb_web; termux-wake-unlock; echo -e '\nStopped.'; exit" INT TERM
+
+        # Run ttyd (blocking)
+        # Force xterm env
+        ttyd -p $PORT -c "tb:$PASSWORD" env TERM=xterm-256color tmux attach-session -t tb_web
+    fi
 }
 
 cmd_help() {
@@ -334,7 +348,7 @@ cmd_help() {
     echo -e "  ${CYAN}c${NC}       : Clear screen"
     
     echo -e "\n${GREEN}[CLI Manager]${NC}"
-    echo -e "  ${CYAN}tb web${NC}    : Start Web Terminal (Dashboard)"
+    echo -e "  ${CYAN}tb web${NC}    : Start Web Terminal (Use --simple for no-tmux)"
     echo -e "  ${CYAN}tb sync${NC}   : Sync Bootstrap scripts only"
     echo -e "  ${CYAN}tb update${NC} : Full System Update (Pkg, Pip, Npm, etc)"
     echo -e "  ${CYAN}tb theme${NC}  : Change terminal color scheme"
