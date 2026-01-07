@@ -281,8 +281,11 @@ cmd_web() {
     
     # Create session, detached
     tmux new-session -d -s tb_web
+    
+    # Enable mouse support (Crucial for web touch/click focus)
+    tmux set-option -t tb_web -g mouse on
+    
     # Split window: Top (Shell), Bottom (System Monitor)
-    # Actually, Side-by-side is better for wide screens (laptops)
     tmux split-window -h
     # Run monitor in the right pane
     tmux send-keys -t tb_web:0.1 "$monitor_cmd" C-m
@@ -300,9 +303,8 @@ cmd_web() {
     trap "tmux kill-session -t tb_web; termux-wake-unlock; echo -e '\nStopped.'; exit" INT TERM
 
     # Run ttyd (blocking)
-    # -W: Writeable
-    # -c: Creds user:pass
-    ttyd -p $PORT -c "tb:$PASSWORD" tmux attach -t tb_web
+    # Wrap in bash to ensure proper signal handling/IO
+    ttyd -p $PORT -c "tb:$PASSWORD" bash -c "tmux attach-session -t tb_web"
 }
 
 cmd_help() {
