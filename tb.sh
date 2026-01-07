@@ -220,26 +220,47 @@ cmd_update() {
 }
 
 cmd_web() {
-    # 1. Dependency Check
-    local deps=("ttyd" "tmux" "btop")
-    local missing=()
-    for dep in "${deps[@]}"; do
+    # 1. Critical Dependency Check
+    local critical_deps=("ttyd" "tmux")
+    local missing_critical=()
+    for dep in "${critical_deps[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
-            missing+=("$dep")
+            missing_critical+=("$dep")
         fi
     done
 
-    if [ ${#missing[@]} -gt 0 ]; then
-        echo -e "${BLUE}[-] Installing dependencies (${missing[*]})...${NC}"
-        pkg install -y "${missing[@]}"
+    if [ ${#missing_critical[@]} -gt 0 ]; then
+        echo -e "${BLUE}[-] Refreshing package lists...${NC}"
+        pkg update -y
+        echo -e "${BLUE}[-] Installing critical dependencies (${missing_critical[*]})...${NC}"
+        if ! pkg install -y "${missing_critical[@]}"; then
+            echo -e "${RED}[ERR] Failed to install dependencies. Check your internet connection.${NC}"
+            return 1
+        fi
     fi
 
-    # 2. Wake Lock
+    # 2. Monitor Tool (Optional)
+    local monitor_cmd="top"
+    if command -v btop &> /dev/null; then
+        monitor_cmd="btop"
+    elif command -v htop &> /dev/null; then
+        monitor_cmd="htop"
+    else
+        # Try to install btop, fallback to htop
+        echo -e "${BLUE}[-] Installing system monitor...${NC}"
+        if pkg install -y btop; then
+            monitor_cmd="btop"
+        elif pkg install -y htop; then
+            monitor_cmd="htop"
+        fi
+    fi
+
+    # 3. Wake Lock
     if command -v termux-wake-lock &> /dev/null; then
         termux-wake-lock
     fi
 
-    # 3. IP Detection
+    # 4. IP Detection
     local IP=$(ifconfig | grep -A 1 'wlan0' | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
     if [ -z "$IP" ]; then
         # Fallback: try to find any 192.168 address
@@ -247,7 +268,7 @@ cmd_web() {
     fi
     if [ -z "$IP" ]; then IP="localhost"; fi
 
-    # 4. Auth
+    # 5. Auth
     echo -e "${PURPLE}Set a password for web access [Enter for random]:${NC}"
     read -r -s PASSWORD
     if [ -z "$PASSWORD" ]; then
@@ -255,7 +276,7 @@ cmd_web() {
         echo -e "Using random password: ${YELLOW}$PASSWORD${NC}"
     fi
 
-    # 5. Tmux Setup
+    # 6. Tmux Setup
     # Kill existing session if any to start fresh
     tmux kill-session -t tb_web 2>/dev/null
     
@@ -264,12 +285,12 @@ cmd_web() {
     # Split window: Top (Shell), Bottom (System Monitor)
     # Actually, Side-by-side is better for wide screens (laptops)
     tmux split-window -h
-    # Run btop in the right pane
-    tmux send-keys -t tb_web:0.1 'btop' C-m
+    # Run monitor in the right pane
+    tmux send-keys -t tb_web:0.1 "$monitor_cmd" C-m
     # Focus on the left pane (Shell)
     tmux select-pane -t tb_web:0.0
 
-    # 6. Start ttyd
+    # 7. Start ttyd
     local PORT=8080
     echo -e "\n${GREEN}🚀 Web Terminal Active!${NC}"
     echo -e "🔗 URL:  ${CYAN}http://$IP:$PORT${NC}"
