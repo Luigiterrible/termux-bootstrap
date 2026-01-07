@@ -260,10 +260,10 @@ cmd_web() {
     fi
 
     # 4. IP Detection
-    local IP=$(ifconfig | grep -A 1 'wlan0' | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
+    local IP=$(ifconfig 2>/dev/null | grep -A 1 'wlan0' | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
     if [ -z "$IP" ]; then
         # Fallback: try to find any 192.168 address
-        IP=$(ifconfig | grep 'inet 192.168' | head -n 1 | awk '{print $2}' | cut -d/ -f1)
+        IP=$(ifconfig 2>/dev/null | grep 'inet 192.168' | head -n 1 | awk '{print $2}' | cut -d/ -f1)
     fi
     if [ -z "$IP" ]; then IP="localhost"; fi
 
