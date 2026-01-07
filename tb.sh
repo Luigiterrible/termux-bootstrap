@@ -217,6 +217,8 @@ cmd_update() {
     cmd_sync
 
     echo -e "${GREEN}[OK] Full System Update Complete!${NC}"
+}
+
 cmd_web() {
     # 1. Dependency Check
     local deps=("ttyd" "tmux" "btop")
