@@ -273,7 +273,8 @@ cmd_web() {
     # Expose fish shell directly with explicit TERM to prevent DA1 query timeout
     # Explicitly enable writable mode
     # Use Canvas renderer + Blink for perceived responsiveness
-    ttyd --writable -p $PORT -c "tb:$PASSWORD" -t "rendererType=canvas,cursorBlink=true,disableStdin=false" env TERM=xterm-256color fish
+    # Request Nerd Fonts for icon support
+    ttyd --writable -p $PORT -c "tb:$PASSWORD" -t "rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'" env TERM=xterm-256color fish
 }
 
 cmd_help() {
