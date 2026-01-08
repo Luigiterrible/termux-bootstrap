@@ -293,7 +293,7 @@ cmd_web() {
     export TB_WEB_MODE=1
 
     # TTYD Options (Canvas + Blink + Font)
-    local TTYD_OPTS="-t rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'"
+    local TTYD_OPTS="-t rendererType=canvas,cursorBlink=true,disableStdin=false"
 
     if [ "$MODE" == "simple" ]; then
         # Simple Mode: Direct Shell (Default)
