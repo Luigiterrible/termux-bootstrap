@@ -604,8 +604,11 @@ install_completions() {
 complete -c tb -f -n "not __fish_seen_subcommand_from update sync theme web help" -a "update" -d "Full System Update"
 complete -c tb -f -n "not __fish_seen_subcommand_from update sync theme web help" -a "sync" -d "Sync Scripts Only"
 complete -c tb -f -n "not __fish_seen_subcommand_from update sync theme web help" -a "theme" -d "Change Theme"
-complete -c tb -f -n "not __fish_seen_subcommand_from update sync theme web help" -a "web" -d "Start Web Dashboard"
+complete -c tb -f -n "not __fish_seen_subcommand_from update sync theme web help" -a "web" -d "Start Web Terminal"
 complete -c tb -f -n "not __fish_seen_subcommand_from update sync theme web help" -a "help" -d "Show Help"
+
+# Arguments for 'web'
+complete -c tb -f -n "__fish_seen_subcommand_from web" -a "--persist" -d "Enable Session Persistence (Tmux)"
 EOF
     log_success "Fish completions installed."
 }
