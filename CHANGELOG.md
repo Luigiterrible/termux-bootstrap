@@ -2,6 +2,28 @@
 
 All notable changes to the **Termux Bootstrap (tb)** project will be documented in this file.
 
+## [v2.9.5] - 2026-01-05
+### Changed
+- **CLI Refinement:** Renamed `tb web --persist` to `tb web --session` for better semantic clarity.
+- **Documentation:** Updated README with project screenshots.
+
+## [v2.9.4] - 2026-01-05
+### Added
+- **Session Persistence:** `tb web --persist` now uses `tmux` to keep your web terminal alive after disconnect.
+- **Status Bar:** Added a built-in shortcut cheat sheet to the bottom of persistent web sessions.
+
+## [v2.9.3] - 2026-01-05
+### Added
+- **Context Awareness:** Web sessions now detect the browser environment and provide a direct download link for Nerd Fonts if icons are missing.
+
+## [v2.9.2] - 2026-01-05
+### Changed
+- **Web Terminal:** Simplified `tb web` to run Fish directly, fixing input latency and focus issues on mobile browsers.
+
+## [v2.9.0] - 2026-01-05
+### Added
+- **`tb web`:** New command to expose your Termux terminal over a local web URL for laptop access.
+
 ## [v2.8.1] - 2026-01-05
 ### Fixed
 - **Sync Persistence:** `tb sync` now automatically re-runs setup logic (refresh mode) to ensure new configurations (aliases, completions) are applied immediately after an update.

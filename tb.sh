@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # ==============================================================================
-# Termux Bootstrap CLI (tb) v2.8.1
+# Termux Bootstrap CLI (tb) v2.9.5
 # The Swiss Army Knife for your Termux Environment.
 # ==============================================================================
 
@@ -225,8 +225,8 @@ cmd_web() {
 
     # Argument Parsing
     for arg in "$@"; do
-        if [ "$arg" == "--persist" ]; then
-            MODE="persistent"
+        if [ "$arg" == "--session" ]; then
+            MODE="session"
         elif [[ "$arg" =~ ^[0-9]+$ ]]; then
             PORT=$arg
         fi
@@ -234,7 +234,7 @@ cmd_web() {
 
     # 1. Critical Dependency Check
     local critical_deps=("ttyd")
-    if [ "$MODE" == "persistent" ]; then
+    if [ "$MODE" == "session" ]; then
         critical_deps+=("tmux")
     fi
     
@@ -255,22 +255,19 @@ cmd_web() {
         fi
     fi
 
-    # 2. Monitor Tool (Optional, only for Dashboard mode)
-    # (Monitor logic removed in previous simplification, which is correct for v2.9.2+)
-
-    # 3. Wake Lock
+    # 2. Wake Lock
     if command -v termux-wake-lock &> /dev/null; then
         termux-wake-lock
     fi
 
-    # 4. IP Detection
+    # 3. IP Detection
     local IP=$(ifconfig 2>/dev/null | grep -A 1 'wlan0' | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
     if [ -z "$IP" ]; then
         IP=$(ifconfig 2>/dev/null | grep 'inet 192.168' | head -n 1 | awk '{print $2}' | cut -d/ -f1)
     fi
     if [ -z "$IP" ]; then IP="localhost"; fi
 
-    # 5. Auth
+    # 4. Auth
     echo -e "${PURPLE}Set a password for web access [Enter for random]:${NC}"
     read -r -s PASSWORD
     if [ -z "$PASSWORD" ]; then
@@ -278,7 +275,7 @@ cmd_web() {
         echo -e "Using random password: ${YELLOW}$PASSWORD${NC}"
     fi
 
-    # 6. Execution
+    # 5. Execution
     local FISH_BIN=$(command -v fish)
     local TMUX_BIN=$(command -v tmux)
     local BASH_BIN=$(command -v bash) # Wrapper for environment injection
@@ -295,15 +292,16 @@ cmd_web() {
     export TERM=xterm-256color
     export TB_WEB_MODE=1
 
+    # TTYD Options (Canvas + Blink + Font)
+    local TTYD_OPTS="-t rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'"
+
     if [ "$MODE" == "simple" ]; then
         # Simple Mode: Direct Shell (Default)
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" \
-            -t "rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'" \
-            "$FISH_BIN"
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS "$FISH_BIN"
     else
         # Persistent Mode: Tmux
         local SESSION="tb_web_$PORT"
-        echo -e "${YELLOW}[i] Persistent Session: $SESSION${NC}"
+        echo -e "${YELLOW}[i] Web Session: $SESSION (Persistent)${NC}"
         
         # Configure Status Bar (Cheatsheet)
         if [ -n "$TMUX_BIN" ]; then
@@ -316,9 +314,7 @@ cmd_web() {
         fi
 
         # Run ttyd wrapping tmux
-        # We use a bash wrapper inside tmux to ensure env vars are set correctly in the new session
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" \
-            -t "rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'" \
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS \
             "$TMUX_BIN" new-session -A -s "$SESSION" "$BASH_BIN -c 'export TERM=xterm-256color TB_WEB_MODE=1; exec $FISH_BIN'"
     fi
 }
@@ -350,7 +346,7 @@ cmd_help() {
     echo -e "  ${CYAN}c${NC}       : Clear screen"
     
     echo -e "\n${GREEN}[CLI Manager]${NC}"
-    echo -e "  ${CYAN}tb web${NC}    : Start Web Terminal (Use --persist for tmux)"
+    echo -e "  ${CYAN}tb web${NC}    : Start Web Terminal (Use --session for tmux)"
     echo -e "  ${CYAN}tb sync${NC}   : Sync Bootstrap scripts only"
     echo -e "  ${CYAN}tb update${NC} : Full System Update (Pkg, Pip, Npm, etc)"
     echo -e "  ${CYAN}tb theme${NC}  : Change terminal color scheme"

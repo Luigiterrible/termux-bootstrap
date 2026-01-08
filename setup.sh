@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # ==============================================================================
-# Termux Bootstrap (tb) v2.8.1
+# Termux Bootstrap (tb) v2.9.5
 # A modular, safe, and mobile-optimized setup script for Termux.
 # ==============================================================================
 
@@ -100,7 +100,7 @@ show_menu() {
     while true; do
         clear
         echo -e "${PURPLE}============================================${NC}"
-        echo "       TERMUX BOOTSTRAP (tb) v2.8.1         "
+        echo "       TERMUX BOOTSTRAP (tb) v2.9.5         "
         echo -e "${PURPLE}============================================${NC}"
         echo -e "Select components to install (Toggle with numbers):"
         echo ""
@@ -608,7 +608,7 @@ complete -c tb -f -n "not __fish_seen_subcommand_from update sync theme web help
 complete -c tb -f -n "not __fish_seen_subcommand_from update sync theme web help" -a "help" -d "Show Help"
 
 # Arguments for 'web'
-complete -c tb -f -n "__fish_seen_subcommand_from web" -a "--persist" -d "Enable Session Persistence (Tmux)"
+complete -c tb -f -n "__fish_seen_subcommand_from web" -a "--session" -d "Enable Session Persistence (Tmux)"
 EOF
     log_success "Fish completions installed."
 }
