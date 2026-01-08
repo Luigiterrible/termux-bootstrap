@@ -287,6 +287,11 @@ cmd_web() {
     # TTYD Options (Canvas + Blink + Font)
     local TTYD_OPTS="-t rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'"
     local FISH_BIN=$(command -v fish)
+    local TMUX_BIN=$(command -v tmux)
+    
+    # Debug info
+    echo -e "${YELLOW}[DEBUG] Shell: $FISH_BIN${NC}"
+    echo -e "${YELLOW}[DEBUG] Tmux:  $TMUX_BIN${NC}"
 
     # Export variables so child processes (ttyd -> fish) inherit them
     export TERM=xterm-256color
@@ -302,11 +307,13 @@ cmd_web() {
         echo -e "${YELLOW}[i] Persistent Session: $SESSION${NC}"
         
         # Ensure global mouse support
-        tmux set -g mouse on 2>/dev/null
+        if [ -n "$TMUX_BIN" ]; then
+            "$TMUX_BIN" set -g mouse on 2>/dev/null
+        fi
 
         # Run ttyd wrapping tmux
         # Pass env vars explicitly to tmux session command string
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS tmux new-session -A -s "$SESSION" "env TERM=xterm-256color TB_WEB_MODE=1 $FISH_BIN"
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS "$TMUX_BIN" new-session -A -s "$SESSION" "env TERM=xterm-256color TB_WEB_MODE=1 $FISH_BIN"
     fi
 }
 
