@@ -284,15 +284,6 @@ cmd_web() {
     # Common trap
     trap "termux-wake-unlock; echo -e '\nStopped.'; exit" INT TERM
 
-    # TTYD Options (Canvas + Blink + Font)
-    local TTYD_OPTS="-t rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'"
-    local FISH_BIN=$(command -v fish)
-    local TMUX_BIN=$(command -v tmux)
-    
-    # Debug info
-    echo -e "${YELLOW}[DEBUG] Shell: $FISH_BIN${NC}"
-    echo -e "${YELLOW}[DEBUG] Tmux:  $TMUX_BIN${NC}"
-
     # Export variables so child processes (ttyd -> fish) inherit them
     export TERM=xterm-256color
     export TB_WEB_MODE=1
@@ -300,7 +291,7 @@ cmd_web() {
     if [ "$MODE" == "simple" ]; then
         # Simple Mode: Direct Shell (Default)
         # We rely on environment inheritance. No wrappers needed.
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS "$FISH_BIN"
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" -t "rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'" "$FISH_BIN"
     else
         # Persistent Mode: Tmux
         local SESSION="tb_web_$PORT"
@@ -313,7 +304,7 @@ cmd_web() {
 
         # Run ttyd wrapping tmux
         # Pass env vars explicitly to tmux session command string
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS "$TMUX_BIN" new-session -A -s "$SESSION" "env TERM=xterm-256color TB_WEB_MODE=1 $FISH_BIN"
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" -t "rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'" "$TMUX_BIN" new-session -A -s "$SESSION" "env TERM=xterm-256color TB_WEB_MODE=1 $FISH_BIN"
     fi
 }
 
