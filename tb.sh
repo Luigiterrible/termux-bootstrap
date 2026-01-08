@@ -284,6 +284,18 @@ cmd_web() {
     # Common trap
     trap "termux-wake-unlock; echo -e '\nStopped.'; exit" INT TERM
 
+    # TTYD Options (Canvas + Blink + Font)
+    local FISH_BIN=$(command -v fish)
+    local TMUX_BIN=$(command -v tmux)
+    
+    echo -e "${YELLOW}[DEBUG] Shell: '$FISH_BIN'${NC}"
+    echo -e "${YELLOW}[DEBUG] Tmux:  '$TMUX_BIN'${NC}"
+    
+    if [ -z "$FISH_BIN" ]; then
+        echo -e "${RED}[ERR] Fish shell not found! Cannot start web terminal.${NC}"
+        return 1
+    fi
+
     # Export variables so child processes (ttyd -> fish) inherit them
     export TERM=xterm-256color
     export TB_WEB_MODE=1
