@@ -289,7 +289,8 @@ cmd_web() {
 
     if [ "$MODE" == "simple" ]; then
         # Simple Mode: Direct Shell (Default)
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS env TERM=xterm-256color TB_WEB_MODE=1 fish
+        # Use bash wrapper to set env vars reliably (avoiding execvp issues with 'env')
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS bash -c "export TERM=xterm-256color TB_WEB_MODE=1; exec fish"
     else
         # Persistent Mode: Tmux
         local SESSION="tb_web_$PORT"
@@ -300,7 +301,8 @@ cmd_web() {
 
         # Run ttyd wrapping tmux
         # new-session -A: Attach if exists, else create
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS tmux new-session -A -s "$SESSION" "env TERM=xterm-256color TB_WEB_MODE=1 fish"
+        # Use bash -c inside tmux to ensure env vars are set regardless of default shell syntax
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS tmux new-session -A -s "$SESSION" "bash -c 'export TERM=xterm-256color TB_WEB_MODE=1; exec fish'"
     fi
 }
 
