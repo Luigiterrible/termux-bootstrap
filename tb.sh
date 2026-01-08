@@ -247,28 +247,30 @@ cmd_web() {
 
     if [ ${#missing_critical[@]} -gt 0 ]; then
         echo -e "${BLUE}[-] Refreshing package lists...${NC}"
-        pkg update -y
-        echo -e "${BLUE}[-] Installing critical dependencies (${missing_critical[*]})...${NC}"
-        if ! pkg install -y "${missing_critical[@]}"; then
+        pkg update -y &>/dev/null
+        echo -e "${BLUE}[-] Installing dependencies (${missing_critical[*]})...${NC}"
+        if ! pkg install -y "${missing_critical[@]}" &>/dev/null; then
             echo -e "${RED}[ERR] Failed to install dependencies. Check your internet connection.${NC}"
             return 1
         fi
     fi
 
-    # 2. Wake Lock
+    # 2. Monitor Tool (Optional, only for Dashboard mode)
+    # (Monitor logic removed in previous simplification, which is correct for v2.9.2+)
+
+    # 3. Wake Lock
     if command -v termux-wake-lock &> /dev/null; then
         termux-wake-lock
     fi
 
-    # 3. IP Detection
+    # 4. IP Detection
     local IP=$(ifconfig 2>/dev/null | grep -A 1 'wlan0' | grep 'inet ' | awk '{print $2}' | cut -d/ -f1)
     if [ -z "$IP" ]; then
-        # Fallback: try to find any 192.168 address
         IP=$(ifconfig 2>/dev/null | grep 'inet 192.168' | head -n 1 | awk '{print $2}' | cut -d/ -f1)
     fi
     if [ -z "$IP" ]; then IP="localhost"; fi
 
-    # 4. Auth
+    # 5. Auth
     echo -e "${PURPLE}Set a password for web access [Enter for random]:${NC}"
     read -r -s PASSWORD
     if [ -z "$PASSWORD" ]; then
@@ -276,55 +278,48 @@ cmd_web() {
         echo -e "Using random password: ${YELLOW}$PASSWORD${NC}"
     fi
 
+    # 6. Execution
+    local FISH_BIN=$(command -v fish)
+    local TMUX_BIN=$(command -v tmux)
+    local BASH_BIN=$(command -v bash) # Wrapper for environment injection
+
     echo -e "\n${GREEN}🚀 Web Terminal Active!${NC}"
     echo -e "🔗 URL:  ${CYAN}http://$IP:$PORT${NC}"
     echo -e "🔐 Creds: user: ${YELLOW}tb${NC} / pass: ${YELLOW}$PASSWORD${NC}"
     echo -e "${BLUE}(Press Ctrl+C to stop)${NC}"
 
-    # Common trap
+    # Trap to cleanup
     trap "termux-wake-unlock; echo -e '\nStopped.'; exit" INT TERM
 
-    # TTYD Options (Canvas + Blink + Font)
-    local FISH_BIN=$(command -v fish)
-    local TMUX_BIN=$(command -v tmux)
-    
-    echo -e "${YELLOW}[DEBUG] Shell: '$FISH_BIN'${NC}"
-    echo -e "${YELLOW}[DEBUG] Tmux:  '$TMUX_BIN'${NC}"
-    
-    if [ -z "$FISH_BIN" ]; then
-        echo -e "${RED}[ERR] Fish shell not found! Cannot start web terminal.${NC}"
-        return 1
-    fi
-
-    # Export variables so child processes (ttyd -> fish) inherit them
+    # Export variables so child processes (ttyd -> fish) inherit them in Simple Mode
     export TERM=xterm-256color
     export TB_WEB_MODE=1
 
     if [ "$MODE" == "simple" ]; then
         # Simple Mode: Direct Shell (Default)
-        # We rely on environment inheritance. No wrappers needed.
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" -t "rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'" "$FISH_BIN"
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" \
+            -t "rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'" \
+            "$FISH_BIN"
     else
         # Persistent Mode: Tmux
         local SESSION="tb_web_$PORT"
         echo -e "${YELLOW}[i] Persistent Session: $SESSION${NC}"
         
-        # Ensure global mouse support
+        # Configure Status Bar (Cheatsheet)
         if [ -n "$TMUX_BIN" ]; then
             "$TMUX_BIN" set -g mouse on 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION" status-position bottom 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION" status-style "bg=black,fg=white" 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION" status-left "#[fg=green,bold] TB Web #[default]" 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION" status-right "#[fg=cyan]New: ^B c #[fg=red]| #[fg=cyan]Close: ^B x #[fg=red]| #[fg=cyan]Switch: ^B n/p " 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION" status-right-length 80 2>/dev/null
         fi
 
-        # Configure Status Bar (Cheatsheet)
-        # We configure this session specifically to show helpers
-        "$TMUX_BIN" set-option -t "$SESSION" status-position bottom 2>/dev/null
-        "$TMUX_BIN" set-option -t "$SESSION" status-style "bg=black,fg=white" 2>/dev/null
-        "$TMUX_BIN" set-option -t "$SESSION" status-left "#[fg=green,bold] TB Web #[default]" 2>/dev/null
-        "$TMUX_BIN" set-option -t "$SESSION" status-right "#[fg=cyan]New: ^B c #[fg=red]| #[fg=cyan]Close: ^B x #[fg=red]| #[fg=cyan]Switch: ^B n/p " 2>/dev/null
-        "$TMUX_BIN" set-option -t "$SESSION" status-right-length 80 2>/dev/null
-
         # Run ttyd wrapping tmux
-        # Pass env vars explicitly to tmux session command string
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" -t "rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'" "$TMUX_BIN" new-session -A -s "$SESSION" "env TERM=xterm-256color TB_WEB_MODE=1 $FISH_BIN"
+        # We use a bash wrapper inside tmux to ensure env vars are set correctly in the new session
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" \
+            -t "rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'" \
+            "$TMUX_BIN" new-session -A -s "$SESSION" "$BASH_BIN -c 'export TERM=xterm-256color TB_WEB_MODE=1; exec $FISH_BIN'"
     fi
 }
 
