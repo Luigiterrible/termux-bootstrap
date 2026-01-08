@@ -287,11 +287,12 @@ cmd_web() {
     # TTYD Options (Canvas + Blink + Font)
     local TTYD_OPTS="-t rendererType=canvas,cursorBlink=true,disableStdin=false,fontFamily='JetBrainsMono Nerd Font','FiraCode Nerd Font','MesloLGS NF','monospace'"
     local BASH_BIN=$(command -v bash)
+    local FISH_BIN=$(command -v fish)
 
     if [ "$MODE" == "simple" ]; then
         # Simple Mode: Direct Shell (Default)
         # Use absolute path to bash to ensure execution
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS "$BASH_BIN" -c "export TERM=xterm-256color TB_WEB_MODE=1; exec fish"
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS "$BASH_BIN" -c "export TERM=xterm-256color TB_WEB_MODE=1; exec $FISH_BIN"
     else
         # Persistent Mode: Tmux
         local SESSION="tb_web_$PORT"
@@ -304,7 +305,7 @@ cmd_web() {
         # Use absolute path to bash inside tmux as well? No, tmux spawns shell using user's PATH.
         # But we used bash -c in the command string for tmux.
         # Let's keep the persistent mode command string simpler if possible, but absolute path is safer.
-        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS tmux new-session -A -s "$SESSION" "$BASH_BIN -c 'export TERM=xterm-256color TB_WEB_MODE=1; exec fish'"
+        ttyd --writable -p $PORT -c "tb:$PASSWORD" $TTYD_OPTS tmux new-session -A -s "$SESSION" "$BASH_BIN -c 'export TERM=xterm-256color TB_WEB_MODE=1; exec $FISH_BIN'"
     fi
 }
 
