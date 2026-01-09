@@ -343,17 +343,7 @@ cmd_web() {
             # Create Dashboard if not exists
             if ! "$TMUX_BIN" has-session -t "$SESSION_NAME" 2>/dev/null; then
                 # Create session (detached)
-                # Note: We must spawn the shell here correctly to inherit env vars
-                # Using the bash wrapper approach for the initial shell spawn
                 "$TMUX_BIN" new-session -d -s "$SESSION_NAME" "$BASH_BIN -c 'export TERM=xterm-256color TB_WEB_MODE=1; exec $FISH_BIN'"
-                
-                # Configure Settings
-                "$TMUX_BIN" set -g mouse on 2>/dev/null
-                "$TMUX_BIN" set-option -t "$SESSION_NAME" status-position bottom 2>/dev/null
-                "$TMUX_BIN" set-option -t "$SESSION_NAME" status-style "bg=black,fg=white" 2>/dev/null
-                "$TMUX_BIN" set-option -t "$SESSION_NAME" status-left "#[fg=magenta,bold] TB Dashboard #[default]" 2>/dev/null
-                "$TMUX_BIN" set-option -t "$SESSION_NAME" status-right "#[fg=cyan]New: ^B c #[fg=red]| #[fg=cyan]Close: ^B x #[fg=red]| #[fg=cyan]Switch: ^B n/p " 2>/dev/null
-                "$TMUX_BIN" set-option -t "$SESSION_NAME" status-right-length 80 2>/dev/null
                 
                 # Split Layout
                 # Split vertically (Main / Bottom) - Bottom is 30%
@@ -362,28 +352,37 @@ cmd_web() {
                 "$TMUX_BIN" split-window -t "${SESSION_NAME}:0.1" -h
                 
                 # Send Commands to Panes
-                # Pane 1 (Bottom Left): Monitor
                 "$TMUX_BIN" send-keys -t "${SESSION_NAME}:0.1" "$MONITOR_CMD" C-m
-                # Pane 2 (Bottom Right): File Manager
                 "$TMUX_BIN" send-keys -t "${SESSION_NAME}:0.2" "$FILE_CMD" C-m
                 
                 # Focus Main Shell
                 "$TMUX_BIN" select-pane -t "${SESSION_NAME}:0.0"
             fi
+
+            # Configure Settings (Always Apply)
+            "$TMUX_BIN" set -g mouse on 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION_NAME" status-position bottom 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION_NAME" status-style "bg=black,fg=white" 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION_NAME" status-left "#[fg=magenta,bold] TB Dashboard #[default]" 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION_NAME" status-right "#[fg=cyan]New: ^B c #[fg=red]| #[fg=cyan]Close: ^B x #[fg=red]| #[fg=cyan]Switch: ^B n/p " 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION_NAME" status-right-length 80 2>/dev/null
+
         else
             # Standard Session
             SESSION_NAME="tb_session_$PORT"
             echo -e "${YELLOW}[i] Session: $SESSION_NAME${NC}"
             
-            # Configure basic session if new
+            # Create session if not exists
             if ! "$TMUX_BIN" has-session -t "$SESSION_NAME" 2>/dev/null; then
                 "$TMUX_BIN" new-session -d -s "$SESSION_NAME" "$BASH_BIN -c 'export TERM=xterm-256color TB_WEB_MODE=1; exec $FISH_BIN'"
-                "$TMUX_BIN" set -g mouse on 2>/dev/null
-                "$TMUX_BIN" set-option -t "$SESSION_NAME" status-style "bg=black,fg=white" 2>/dev/null
-                "$TMUX_BIN" set-option -t "$SESSION_NAME" status-left "#[fg=green,bold] TB Session #[default]" 2>/dev/null
-                "$TMUX_BIN" set-option -t "$SESSION_NAME" status-right "#[fg=cyan]New: ^B c #[fg=red]| #[fg=cyan]Close: ^B x #[fg=red]| #[fg=cyan]Switch: ^B n/p " 2>/dev/null
-                "$TMUX_BIN" set-option -t "$SESSION_NAME" status-right-length 80 2>/dev/null
             fi
+
+            # Configure Settings (Always Apply)
+            "$TMUX_BIN" set -g mouse on 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION_NAME" status-style "bg=black,fg=white" 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION_NAME" status-left "#[fg=green,bold] TB Session #[default]" 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION_NAME" status-right "#[fg=cyan]New: ^B c #[fg=red]| #[fg=cyan]Close: ^B x #[fg=red]| #[fg=cyan]Switch: ^B n/p " 2>/dev/null
+            "$TMUX_BIN" set-option -t "$SESSION_NAME" status-right-length 80 2>/dev/null
         fi
 
         # Run ttyd attaching to the specific session
