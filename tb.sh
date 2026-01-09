@@ -242,9 +242,7 @@ cmd_web() {
     if [ "$MODE" != "simple" ]; then
         critical_deps+=("tmux")
     fi
-    if [ "$MODE" == "dashboard" ]; then
-        critical_deps+=("btop" "yazi")
-    fi
+    # Dashboard apps are optional/fallback-capable
     
     local missing_critical=()
     for dep in "${critical_deps[@]}"; do
@@ -263,7 +261,35 @@ cmd_web() {
         fi
     fi
 
-    # 2. Wake Lock
+    # 2. Dashboard Components (Optional)
+    local MONITOR_CMD="top"
+    local FILE_CMD="ls -l" # Fallback
+    
+    if [ "$MODE" == "dashboard" ]; then
+        # Try btop -> htop
+        if command -v btop &> /dev/null; then
+            MONITOR_CMD="btop"
+        elif pkg install -y btop &>/dev/null; then
+            MONITOR_CMD="btop"
+        elif command -v htop &> /dev/null; then
+            MONITOR_CMD="htop"
+        elif pkg install -y htop &>/dev/null; then
+            MONITOR_CMD="htop"
+        fi
+        
+        # Try yazi -> ranger -> nnn -> fish
+        if command -v yazi &> /dev/null; then
+            FILE_CMD="yazi"
+        elif pkg install -y yazi &>/dev/null; then
+            FILE_CMD="yazi"
+        elif pkg install -y ranger &>/dev/null; then
+            FILE_CMD="ranger"
+        else
+            FILE_CMD="$FISH_BIN"
+        fi
+    fi
+
+    # 3. Wake Lock
     if command -v termux-wake-lock &> /dev/null; then
         termux-wake-lock
     fi
@@ -334,10 +360,10 @@ cmd_web() {
                 "$TMUX_BIN" split-window -t "${SESSION_NAME}:0.1" -h
                 
                 # Send Commands to Panes
-                # Pane 1 (Bottom Left): btop
-                "$TMUX_BIN" send-keys -t "${SESSION_NAME}:0.1" 'btop' C-m
-                # Pane 2 (Bottom Right): yazi
-                "$TMUX_BIN" send-keys -t "${SESSION_NAME}:0.2" 'yazi' C-m
+                # Pane 1 (Bottom Left): Monitor
+                "$TMUX_BIN" send-keys -t "${SESSION_NAME}:0.1" "$MONITOR_CMD" C-m
+                # Pane 2 (Bottom Right): File Manager
+                "$TMUX_BIN" send-keys -t "${SESSION_NAME}:0.2" "$FILE_CMD" C-m
                 
                 # Focus Main Shell
                 "$TMUX_BIN" select-pane -t "${SESSION_NAME}:0.0"
